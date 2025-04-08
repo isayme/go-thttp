@@ -9,6 +9,7 @@ import (
 type contextKey int
 
 const ContextKey contextKey = 0
+const PathParamsCtxKey contextKey = 0
 const RequestIDKey contextKey = 1
 
 type App struct {

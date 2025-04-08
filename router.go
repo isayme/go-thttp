@@ -119,6 +119,8 @@ func (router *MuxRouter) Match(w http.ResponseWriter, r *http.Request) (HandlerF
 	var handler http.Handler
 
 	if router.r.Match(r, &match) {
+		ctx, _ := r.Context().Value(ContextKey).(Context)
+		ctx.Set(PathParamsCtxKey, match.Vars)
 		handler = match.Handler
 		nh, _ := handler.(*noopHandler)
 		return nh.Handler(), true

@@ -7,8 +7,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-
-	"github.com/gorilla/mux"
+	"sync"
 )
 
 var (
@@ -27,6 +26,9 @@ type Context interface {
 
 	Response() http.ResponseWriter
 	SetResponse(r http.ResponseWriter)
+
+	Get(key interface{}) interface{}
+	Set(key, value interface{})
 
 	Method() string
 	PathParam(name string) string
@@ -58,12 +60,16 @@ type thttpContext struct {
 	w http.ResponseWriter
 
 	query url.Values
+
+	lock  sync.RWMutex
+	store map[interface{}]interface{}
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) Context {
 	return &thttpContext{
-		r: r,
-		w: w,
+		r:     r,
+		w:     w,
+		store: make(map[interface{}]interface{}),
 	}
 }
 
@@ -87,12 +93,29 @@ func (ctx *thttpContext) SetResponse(w http.ResponseWriter) {
 	ctx.w = w
 }
 
+func (ctx *thttpContext) Get(key interface{}) interface{} {
+	ctx.lock.Lock()
+	defer ctx.lock.Unlock()
+
+	return ctx.store[key]
+}
+
+func (ctx *thttpContext) Set(key, value interface{}) {
+	ctx.lock.Lock()
+	defer ctx.lock.Unlock()
+
+	ctx.store[key] = value
+}
+
 func (ctx *thttpContext) Method() string {
 	return ctx.r.Method
 }
 
 func (ctx *thttpContext) PathParam(name string) string {
-	vars := mux.Vars(ctx.r)
+	// vars, _ := ctx.Context().Value(PathParamsCtxKey).(map[string]string)
+	vars, _ := ctx.Get(PathParamsCtxKey).(map[string]string)
+	// vars := mux.Vars(ctx.r)
+	// slog.Info("%v", ctx.Context().Value(PathParamsCtxKey))
 	return vars[name]
 }
 

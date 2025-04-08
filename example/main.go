@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/isayme/go-thttp"
@@ -16,6 +17,12 @@ func main() {
 
 	app.Get("/hello", func(ctx thttp.Context) error {
 		ctx.String(200, "hi")
+		return nil
+	})
+
+	app.Get("/abc/{key}/{value}", func(ctx thttp.Context) error {
+		// ctx.String(200, "hi")
+		ctx.String(200, fmt.Sprintf("k: %s, v: %s", ctx.PathParam("key"), ctx.PathParam("value")))
 		return nil
 	})
 
