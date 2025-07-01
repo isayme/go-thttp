@@ -36,12 +36,30 @@ func New() *App {
 
 func (app *App) Get(pattern string, handler HandlerFunc) {
 	app.router.Get(pattern, handler)
-	// app.router.Methods("GET").Path(pattern).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	// 	value := r.Context().Value(ContextKey)
+}
 
-	// 	ctx, _ := value.(Context)
-	// 	handler(ctx)
-	// })
+func (app *App) Post(pattern string, handler HandlerFunc) {
+	app.router.Post(pattern, handler)
+}
+
+func (app *App) Put(pattern string, handler HandlerFunc) {
+	app.router.Put(pattern, handler)
+}
+
+func (app *App) Patch(pattern string, handler HandlerFunc) {
+	app.router.Patch(pattern, handler)
+}
+
+func (app *App) Delete(pattern string, handler HandlerFunc) {
+	app.router.Del(pattern, handler)
+}
+
+func (app *App) Head(pattern string, handler HandlerFunc) {
+	app.router.Head(pattern, handler)
+}
+
+func (app *App) Trace(pattern string, handler HandlerFunc) {
+	app.router.Trace(pattern, handler)
 }
 
 func (app *App) Use(middleware ...MiddlewareFunc) {

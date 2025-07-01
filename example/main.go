@@ -30,5 +30,5 @@ func main() {
 		return errors.New("got error")
 	})
 
-	slog.Error("start fail: %s", app.Start(":8080"))
+	slog.Error("start fail", "err", app.Start(":8080"))
 }
