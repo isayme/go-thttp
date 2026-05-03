@@ -31,6 +31,7 @@ type Context interface {
 	Set(key, value interface{})
 
 	Method() string
+	SetPathParam(fn PathParams)
 	PathParam(name string) string
 	QueryParam(name string) string
 	QueryParams() url.Values
@@ -58,6 +59,8 @@ type Context interface {
 type thttpContext struct {
 	r *http.Request
 	w http.ResponseWriter
+
+	params PathParams
 
 	query url.Values
 
@@ -111,12 +114,18 @@ func (ctx *thttpContext) Method() string {
 	return ctx.r.Method
 }
 
+func (ctx *thttpContext) SetPathParam(fn PathParams) {
+	ctx.Set(PathParamsCtxKey, fn)
+	ctx.params = fn
+}
+
 func (ctx *thttpContext) PathParam(name string) string {
 	// vars, _ := ctx.Context().Value(PathParamsCtxKey).(map[string]string)
-	vars, _ := ctx.Get(PathParamsCtxKey).(map[string]string)
+	// vars, _ := ctx.Get(PathParamsCtxKey).(map[string]string)
 	// vars := mux.Vars(ctx.r)
 	// slog.Info("%v", ctx.Context().Value(PathParamsCtxKey))
-	return vars[name]
+	// return vars[name]
+	return ctx.params.Get(name)
 }
 
 func (ctx *thttpContext) QueryParam(name string) string {

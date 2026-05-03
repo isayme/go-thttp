@@ -14,15 +14,15 @@ const (
 )
 
 var (
-	methods = [...]string{
-		http.MethodConnect,
-		http.MethodDelete,
+	allowedHttpMethods = []string{
 		http.MethodGet,
 		http.MethodHead,
-		http.MethodOptions,
-		http.MethodPatch,
 		http.MethodPost,
 		http.MethodPut,
+		http.MethodPatch,
+		http.MethodDelete,
+		http.MethodConnect,
+		http.MethodOptions,
 		http.MethodTrace,
 	}
 )

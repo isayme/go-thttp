@@ -21,7 +21,7 @@ type App struct {
 
 func New() *App {
 	app := &App{
-		router:      NewMuxRouter(),
+		router:      NewHttpServeMux(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 
@@ -34,32 +34,49 @@ func New() *App {
 	return app
 }
 
-func (app *App) Get(pattern string, handler HandlerFunc) {
-	app.router.Get(pattern, handler)
+func (app *App) getHandler(handler HandlerFunc) HandlerFunc {
+	return func(ctx Context) error {
+		h := applyMiddleware(handler, app.middlewares...)
+		return h(ctx)
+	}
 }
 
-func (app *App) Post(pattern string, handler HandlerFunc) {
-	app.router.Post(pattern, handler)
+func (app *App) Handle(method, pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	app.router.Handle(method, pattern, applyMiddleware(app.getHandler(handler), middleware...))
 }
 
-func (app *App) Put(pattern string, handler HandlerFunc) {
-	app.router.Put(pattern, handler)
+func (app *App) Get(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	app.Handle(http.MethodGet, pattern, handler, middleware...)
 }
 
-func (app *App) Patch(pattern string, handler HandlerFunc) {
-	app.router.Patch(pattern, handler)
+func (app *App) Post(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	app.Handle(http.MethodPost, pattern, handler, middleware...)
 }
 
-func (app *App) Delete(pattern string, handler HandlerFunc) {
-	app.router.Del(pattern, handler)
+func (app *App) Put(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	app.Handle(http.MethodPut, pattern, handler, middleware...)
 }
 
-func (app *App) Head(pattern string, handler HandlerFunc) {
-	app.router.Head(pattern, handler)
+func (app *App) Patch(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	app.Handle(http.MethodPatch, pattern, handler, middleware...)
 }
 
-func (app *App) Trace(pattern string, handler HandlerFunc) {
-	app.router.Trace(pattern, handler)
+func (app *App) Delete(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	app.Handle(http.MethodDelete, pattern, handler, middleware...)
+}
+
+func (app *App) Head(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	app.Handle(http.MethodHead, pattern, handler, middleware...)
+}
+
+func (app *App) Options(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	app.Handle(http.MethodOptions, pattern, handler, middleware...)
+}
+
+func (app *App) Any(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	for _, method := range allowedHttpMethods {
+		app.Handle(method, pattern, handler, middleware...)
+	}
 }
 
 func (app *App) Use(middleware ...MiddlewareFunc) {
@@ -68,6 +85,17 @@ func (app *App) Use(middleware ...MiddlewareFunc) {
 
 func (app *App) Static(pattern string, root string) {
 
+}
+
+func (app *App) Group(prefix string, middleware ...MiddlewareFunc) *Group {
+	g := &Group{
+		router:      app.router,
+		parent:      nil,
+		prefix:      prefix,
+		middlewares: make([]MiddlewareFunc, 0),
+	}
+	g.Use(middleware...)
+	return g
 }
 
 func (app *App) Start(address string) error {
@@ -79,14 +107,14 @@ func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r = r.WithContext(context.WithValue(r.Context(), ContextKey, ctx))
 	ctx.SetRequest(r)
 
-	h, ok := app.router.Match(w, r)
+	h, params, ok := app.router.Match(w, r)
 	if !ok {
 		w.WriteHeader(404)
 		w.Write([]byte("404"))
 		return
 	}
 
-	h = applyMiddleware(h, app.middlewares...)
+	ctx.SetPathParam(params(ctx))
 
 	err := h(ctx)
 	if err != nil {
@@ -125,15 +153,4 @@ func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 
 type HandlerFunc func(ctx Context) error
 
-type MiddlewareFunc func(next HandlerFunc) HandlerFunc
-
-type Middlewares []func(http.Handler) http.Handler
-
 type Skipper func(ctx Context) bool
-
-func applyMiddleware(h HandlerFunc, middleware ...MiddlewareFunc) HandlerFunc {
-	for i := len(middleware) - 1; i >= 0; i-- {
-		h = middleware[i](h)
-	}
-	return h
-}
