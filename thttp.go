@@ -9,8 +9,9 @@ import (
 type contextKey int
 
 const ContextKey contextKey = 0
-const PathParamsCtxKey contextKey = 0
-const RequestIDKey contextKey = 1
+const PathParamsCtxKey contextKey = 1
+const RequestIDKey contextKey = 2
+const HandlerKey contextKey = 3
 
 type App struct {
 	pool sync.Pool
@@ -21,15 +22,14 @@ type App struct {
 
 func New() *App {
 	app := &App{
-		router:      NewHttpServeMux(),
+		router: NewHttpServeMux(),
+		// router:      NewHttprouterMux(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 
 	app.pool.New = func() any {
 		return NewContext(nil, nil)
 	}
-
-	// app.router.Match()
 
 	return app
 }
@@ -90,6 +90,7 @@ func (app *App) Static(pattern string, root string) {
 
 func (app *App) Group(prefix string, middleware ...MiddlewareFunc) *Group {
 	g := &Group{
+		app:         app,
 		router:      app.router,
 		parent:      nil,
 		prefix:      prefix,

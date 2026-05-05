@@ -33,15 +33,3 @@ type PathParamsFunc func(ctx Context) PathParams
 type PathParams interface {
 	Get(name string) string
 }
-
-type HttpServeMuxPathParams struct {
-	ctx Context
-}
-
-func NewHttpServeMuxPathParams(ctx Context) PathParams {
-	return &HttpServeMuxPathParams{ctx: ctx}
-}
-
-func (pp *HttpServeMuxPathParams) Get(name string) string {
-	return pp.ctx.Request().PathValue(name)
-}

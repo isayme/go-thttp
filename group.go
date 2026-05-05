@@ -6,6 +6,7 @@ import (
 )
 
 type Group struct {
+	app    *App
 	router Router
 
 	parent      *Group
@@ -18,7 +19,8 @@ func (g *Group) Use(middleware ...MiddlewareFunc) {
 }
 
 func (g *Group) Handle(method, pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
-	g.router.Handle(method, g.formatPattern(pattern), g.getHandler(handler), middleware...)
+	// g.router.Handle(method, g.formatPattern(pattern), g.getHandler(handler), middleware...)
+	g.app.Handle(method, g.formatPattern(pattern), g.getHandler(handler), middleware...)
 }
 
 func (g *Group) Get(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
@@ -57,6 +59,7 @@ func (g *Group) Any(pattern string, handler HandlerFunc, middleware ...Middlewar
 
 func (g *Group) Group(prefix string, middleware ...MiddlewareFunc) *Group {
 	sg := &Group{
+		app:         g.app,
 		router:      g.router,
 		parent:      g,
 		prefix:      prefix,

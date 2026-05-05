@@ -236,3 +236,23 @@ func (ctx *thttpContext) Reset(r *http.Request, w http.ResponseWriter) {
 	ctx.query = nil
 	ctx.w = w
 }
+
+func MustGetContextFromRequest(r *http.Request) Context {
+	ctx := r.Context().Value(ContextKey)
+	if ctx == nil {
+		panic("thttp: no context found in request")
+	}
+	return ctx.(Context)
+}
+
+func SetHandlerInCtx(ctx Context, h HandlerFunc) {
+	ctx.Set(HandlerKey, h)
+}
+
+func MustGetHandlerFromCtx(ctx Context) HandlerFunc {
+	h := ctx.Get(HandlerKey)
+	if h == nil {
+		panic("thttp: no handler found in context")
+	}
+	return h.(HandlerFunc)
+}
