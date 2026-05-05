@@ -8,10 +8,13 @@ import (
 
 type contextKey int
 
-const ContextKey contextKey = 0
-const PathParamsCtxKey contextKey = 1
-const RequestIDKey contextKey = 2
-const HandlerKey contextKey = 3
+const (
+	ContextKey contextKey = iota
+	PathParamsCtxKey
+	PathRawParamsCtxKey
+	RequestIDKey
+	HandlerKey
+)
 
 type App struct {
 	pool sync.Pool
@@ -23,6 +26,7 @@ type App struct {
 func New() *App {
 	app := &App{
 		router: NewHttpServeMux(),
+		// router: NewGorillaMux(),
 		// router:      NewHttprouterMux(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
