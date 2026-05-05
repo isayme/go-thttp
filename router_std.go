@@ -18,6 +18,10 @@ func NewHttpServeMux() *HttpServeMux {
 	}
 }
 
+func (router *HttpServeMux) PatternType() PatternType {
+	return BracePattern
+}
+
 func (router *HttpServeMux) Use(middlewares ...MiddlewareFunc) {
 	router.middlewares = append(router.middlewares, middlewares...)
 }

@@ -7,6 +7,8 @@ import (
 var _ Router = &HttpServeMux{}
 
 type Router interface {
+	PatternType() PatternType
+
 	Use(middleware ...MiddlewareFunc)
 
 	Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc)

@@ -42,6 +42,7 @@ func (app *App) getHandler(handler HandlerFunc) HandlerFunc {
 }
 
 func (app *App) Handle(method, pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
+	pattern = convertPattern(pattern, app.router.PatternType())
 	app.router.Handle(method, pattern, applyMiddleware(app.getHandler(handler), middleware...))
 }
 
