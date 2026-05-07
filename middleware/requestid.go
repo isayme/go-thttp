@@ -3,7 +3,6 @@ package middleware
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"log/slog"
 
 	"github.com/isayme/go-thttp"
 )
@@ -17,7 +16,6 @@ func RequestID() thttp.MiddlewareFunc {
 			}
 
 			kvs, ok := ctx.Context().Value(thttp.LoggerCtxKey).(map[string]interface{})
-			slog.Info("reqId", "ok", ok, "id", id, "kvs", kvs)
 			if ok {
 				kvs["request_id"] = id
 			}

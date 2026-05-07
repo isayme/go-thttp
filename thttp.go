@@ -95,12 +95,13 @@ func (app *App) Handle(method, pattern string, handler HandlerFunc, middleware .
 	// slog.Info("handle", "method", method, "pattern", pattern)
 
 	if catchAllKey != "" {
-		middleware = append(middleware, func(next HandlerFunc) HandlerFunc {
+		md := func(next HandlerFunc) HandlerFunc {
 			return func(ctx Context) error {
 				ctx.Set(CatchAllPathParamCtxKey, catchAllKey)
 				return next(ctx)
 			}
-		})
+		}
+		middleware = append([]MiddlewareFunc{md}, middleware...)
 	}
 
 	app.router.Handle(method, pattern, applyMiddleware(app.getHandler(handler), middleware...))

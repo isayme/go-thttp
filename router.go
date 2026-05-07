@@ -20,7 +20,7 @@ var allRouterTypes = []RouterType{
 	RouterTypeStd,
 	RouterTypeHttprouter,
 	RouterTypeGorillaMux,
-	RouterTypeGin,
+	// RouterTypeGin,
 	RouterTypeChi,
 	RouterTypeEcho,
 }

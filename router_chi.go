@@ -1,7 +1,6 @@
 package thttp
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -38,7 +37,7 @@ func (router *ChiMux) Use(middlewares ...MiddlewareFunc) {
 
 func (router *ChiMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
-	slog.Info("chi", "method", method, "pattern", pattern)
+	// slog.Info("chi", "method", method, "pattern", pattern)
 	router.r.MethodFunc(method, pattern, func(w http.ResponseWriter, r *http.Request) {
 		ctx := MustGetContextFromRequest(r)
 		SetHandlerInCtx(ctx, handler)

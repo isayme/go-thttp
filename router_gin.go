@@ -13,8 +13,11 @@ type GinMux struct {
 }
 
 func NewGinMux() Router {
+	ginEngine := gin.Default()
+	ginEngine.HandleMethodNotAllowed = false
+	ginEngine.NoRoute(func(ctx *gin.Context) {})
 	return &GinMux{
-		r:           gin.Default(),
+		r:           ginEngine,
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }

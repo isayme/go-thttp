@@ -11,18 +11,8 @@ type EchoMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func echoNotFoundHandler(c *echo.Context) error {
-	return nil
-}
-
-func echoMethodNotImplementedHandler(c *echo.Context) error {
-	return nil
-}
-
 func NewEchoMux() Router {
 	routerConfig := echo.RouterConfig{}
-	// routerConfig.NotFoundHandler = echoNotFoundHandler
-	// routerConfig.MethodNotAllowedHandler = echoMethodNotImplementedHandler
 
 	return &EchoMux{
 		r:           echo.NewWithConfig(echo.Config{Router: echo.NewRouter(routerConfig)}),

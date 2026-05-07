@@ -190,77 +190,80 @@ func TestStatusCode(t *testing.T) {
 func TestNotFound(t *testing.T) {
 	require := require.New(t)
 
-	t.Run("not found", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/method", nil)
+	for _, routerType := range allRouterTypes {
+		t.Run(string(routerType)+": not found", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/method", nil)
 
-		w := httptest.NewRecorder()
+			w := httptest.NewRecorder()
 
-		app := New()
+			app := New(WithRouterType(routerType))
 
-		app.ServeHTTP(w, req)
+			app.ServeHTTP(w, req)
 
-		require.Equal(http.StatusNotFound, w.Code)
-	})
-
-	t.Run("custom not found", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/method", nil)
-
-		w := httptest.NewRecorder()
-
-		app := New()
-
-		msg := randomString()
-
-		app.NotFound(func(ctx Context) error {
-			return ctx.String(http.StatusNotImplemented, msg)
+			require.Equal(http.StatusNotFound, w.Code)
+			require.Equal("404 page not found", w.Body.String())
 		})
 
-		app.ServeHTTP(w, req)
+		t.Run(string(routerType)+": custom not found", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/method", nil)
 
-		require.Equal(http.StatusNotImplemented, w.Code)
-		require.Equal(msg, w.Body.String())
-	})
+			w := httptest.NewRecorder()
 
-	t.Run("error handler", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/method", nil)
+			app := New(WithRouterType(routerType))
 
-		w := httptest.NewRecorder()
+			msg := randomString()
 
-		app := New()
+			app.NotFound(func(ctx Context) error {
+				return ctx.String(http.StatusNotImplemented, msg)
+			})
 
-		errMsg := randomString()
-		app.Get("/method", func(ctx Context) error {
-			return errors.New(errMsg)
+			app.ServeHTTP(w, req)
+
+			require.Equal(http.StatusNotImplemented, w.Code)
+			require.Equal(msg, w.Body.String())
 		})
 
-		app.ServeHTTP(w, req)
+		t.Run(string(routerType)+": error handler", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/method", nil)
 
-		require.Equal(http.StatusInternalServerError, w.Code)
-		require.Equal(errMsg, w.Body.String())
-	})
+			w := httptest.NewRecorder()
 
-	t.Run("custom error handler", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/method", nil)
+			app := New(WithRouterType(routerType))
 
-		w := httptest.NewRecorder()
+			errMsg := randomString()
+			app.Get("/method", func(ctx Context) error {
+				return errors.New(errMsg)
+			})
 
-		app := New()
+			app.ServeHTTP(w, req)
 
-		errMsgPrefix := randomString()
-		app.ErrorHandler(func(ctx Context, err error) error {
-			return ctx.String(http.StatusBadGateway, errMsgPrefix+err.Error())
+			require.Equal(http.StatusInternalServerError, w.Code)
+			require.Equal(errMsg, w.Body.String())
 		})
 
-		errMsg := randomString()
-		app.Get("/method", func(ctx Context) error {
-			return errors.New(errMsg)
+		t.Run(string(routerType)+": custom error handler", func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/method", nil)
+
+			w := httptest.NewRecorder()
+
+			app := New(WithRouterType(routerType))
+
+			errMsgPrefix := randomString()
+			app.ErrorHandler(func(ctx Context, err error) error {
+				return ctx.String(http.StatusBadGateway, errMsgPrefix+err.Error())
+			})
+
+			errMsg := randomString()
+			app.Get("/method", func(ctx Context) error {
+				return errors.New(errMsg)
+			})
+
+			app.ServeHTTP(w, req)
+
+			require.Equal(http.StatusBadGateway, w.Code)
+			require.Equal(errMsgPrefix+errMsg, w.Body.String())
 		})
-
-		app.ServeHTTP(w, req)
-
-		require.Equal(http.StatusBadGateway, w.Code)
-		require.Equal(errMsgPrefix+errMsg, w.Body.String())
-	})
+	}
 }
 
 func TestContextPathParam(t *testing.T) {
