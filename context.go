@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -53,16 +54,21 @@ type Context interface {
 	Stream(code int, contentType string, r io.Reader) error
 	Redirect(code int, url string) error
 
-	Reset(r *http.Request, w http.ResponseWriter)
+	Logger() *slog.Logger
+	Reset(r *http.Request, w http.ResponseWriter, logger *slog.Logger)
 }
 
 type thttpContext struct {
+	parentCtx context.Context
+
 	r *http.Request
 	w http.ResponseWriter
 
 	params PathParams
 
 	query url.Values
+
+	logger *slog.Logger
 
 	lock  sync.RWMutex
 	store map[interface{}]interface{}
@@ -222,11 +228,16 @@ func (ctx *thttpContext) Redirect(code int, url string) error {
 	return nil
 }
 
-func (ctx *thttpContext) Reset(r *http.Request, w http.ResponseWriter) {
+func (ctx *thttpContext) Logger() *slog.Logger {
+	return ctx.logger
+}
+
+func (ctx *thttpContext) Reset(r *http.Request, w http.ResponseWriter, logger *slog.Logger) {
 	ctx.r = r
 	ctx.w = w
 	ctx.query = nil
 	ctx.params = nil
+	ctx.logger = logger
 	ctx.store = make(map[interface{}]interface{})
 }
 

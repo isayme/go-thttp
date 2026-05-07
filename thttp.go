@@ -2,6 +2,7 @@ package thttp
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -16,6 +17,7 @@ const (
 	PathRawParamsCtxKey
 	RequestIDKey
 	HandlerKey
+	LoggerCtxKey
 )
 
 type App struct {
@@ -27,6 +29,8 @@ type App struct {
 
 	notFoundHandler HandlerFunc
 	errorHandler    ErrorHandlerFunc
+
+	logger *slog.Logger
 }
 
 func New(options ...optionFunc) *App {
@@ -49,7 +53,17 @@ func New(options ...optionFunc) *App {
 		return NewContext(nil, nil)
 	}
 
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelInfo,
+		AddSource: false,
+	})
+	app.logger = slog.New(handler)
+
 	return app
+}
+
+func (app *App) Logger() *slog.Logger {
+	return app.logger
 }
 
 func (app *App) getHandler(handler HandlerFunc) HandlerFunc {
@@ -168,7 +182,7 @@ func (app *App) Start(address string) error {
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := app.pool.Get().(Context)
-	ctx.Reset(r, w)
+	ctx.Reset(r, w, app.logger)
 	r = r.WithContext(context.WithValue(r.Context(), ContextKey, ctx))
 	ctx.SetRequest(r)
 

@@ -11,6 +11,7 @@ import (
 func main() {
 	app := thttp.New()
 
+	app.Use(middleware.Logger())
 	app.Use(middleware.RequestID())
 
 	app.Get("/hello", func(ctx thttp.Context) error {
