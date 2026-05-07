@@ -14,7 +14,9 @@ type contextKey int
 const (
 	ContextKey contextKey = iota
 	PathParamsCtxKey
+	CatchAllPathParamCtxKey
 	PathRawParamsCtxKey
+	HandlerFoundKey
 	RequestIDKey
 	HandlerKey
 	LoggerCtxKey
@@ -73,18 +75,34 @@ func (app *App) getHandler(handler HandlerFunc) HandlerFunc {
 	}
 }
 
-func (app *App) formatPattern(pattern string) string {
+func (app *App) formatPattern(pattern string) (string, string) {
+	catchAllKey := ""
 	segs := ParsePath(pattern)
 	parts := make([]string, 0, len(segs))
 	for _, s := range segs {
-		parts = append(parts, app.router.FormatSegment(s))
+		part := app.router.FormatSegment(s)
+		parts = append(parts, part)
+		if s.Type == CatchAll {
+			catchAllKey = s.Name
+		}
 	}
 
-	return "/" + strings.Join(parts, "/")
+	return "/" + strings.Join(parts, "/"), catchAllKey
 }
 
 func (app *App) Handle(method, pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
-	pattern = app.formatPattern(app.prefix + pattern)
+	pattern, catchAllKey := app.formatPattern(app.prefix + pattern)
+	// slog.Info("handle", "method", method, "pattern", pattern)
+
+	if catchAllKey != "" {
+		middleware = append(middleware, func(next HandlerFunc) HandlerFunc {
+			return func(ctx Context) error {
+				ctx.Set(CatchAllPathParamCtxKey, catchAllKey)
+				return next(ctx)
+			}
+		})
+	}
+
 	app.router.Handle(method, pattern, applyMiddleware(app.getHandler(handler), middleware...))
 }
 

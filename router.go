@@ -9,20 +9,29 @@ type RouterType string
 
 const (
 	RouterTypeStd        RouterType = "net/http"
-	RouterTypeHttprouter RouterType = "httprouter"
+	RouterTypeHttprouter RouterType = "julienschmidt/httprouter"
 	RouterTypeGorillaMux RouterType = "gorilla/mux"
+	RouterTypeGin        RouterType = "gin-gonic/gin"
+	RouterTypeChi        RouterType = "go-chi/chi"
+	RouterTypeEcho       RouterType = "labstack/echo"
 )
 
 var allRouterTypes = []RouterType{
 	RouterTypeStd,
 	RouterTypeHttprouter,
 	RouterTypeGorillaMux,
+	RouterTypeGin,
+	RouterTypeChi,
+	RouterTypeEcho,
 }
 
 var routerTypeMap = map[RouterType]newRouterFunc{
 	RouterTypeStd:        NewHttpServeMux,
 	RouterTypeHttprouter: NewHttprouterMux,
 	RouterTypeGorillaMux: NewGorillaMux,
+	RouterTypeChi:        NewChiMux,
+	RouterTypeEcho:       NewEchoMux,
+	RouterTypeGin:        NewGinMux,
 }
 
 type Router interface {

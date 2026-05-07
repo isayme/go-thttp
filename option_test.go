@@ -1,7 +1,7 @@
 package thttp
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,7 +15,7 @@ func TestWithNotFoundHandler(t *testing.T) {
 	t.Run("custom notfound handler", func(t *testing.T) {
 		errMsg := randomString()
 		var handler HandlerFunc = func(Context) error {
-			return fmt.Errorf(errMsg)
+			return errors.New(errMsg)
 		}
 
 		app := New(WithNotFoundHandler(handler))
@@ -30,7 +30,7 @@ func TestWithErrorHandler(t *testing.T) {
 	t.Run("custom notfound handler", func(t *testing.T) {
 		errMsg := randomString()
 		var handler ErrorHandlerFunc = func(Context, error) error {
-			return fmt.Errorf(errMsg)
+			return errors.New(errMsg)
 		}
 
 		app := New(WithErrorHandler(handler))

@@ -2,6 +2,7 @@ package thttp
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -229,7 +230,7 @@ func TestNotFound(t *testing.T) {
 
 		errMsg := randomString()
 		app.Get("/method", func(ctx Context) error {
-			return fmt.Errorf(errMsg)
+			return errors.New(errMsg)
 		})
 
 		app.ServeHTTP(w, req)
@@ -252,7 +253,7 @@ func TestNotFound(t *testing.T) {
 
 		errMsg := randomString()
 		app.Get("/method", func(ctx Context) error {
-			return fmt.Errorf(errMsg)
+			return errors.New(errMsg)
 		})
 
 		app.ServeHTTP(w, req)

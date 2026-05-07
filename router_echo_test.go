@@ -9,14 +9,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestGorillaMuxDuplicaPattern gorilla/mux match by route define order.
-func TestGorillaMuxDuplicaPattern(t *testing.T) {
+// echo 静态优先
+func TestEchoDuplicaPattern(t *testing.T) {
 	require := require.New(t)
 
 	t.Run("allow duplicate route 1", func(t *testing.T) {
 		key := randomString()
 
-		app := New(WithRouterType(RouterTypeGorillaMux))
+		app := New(WithRouterType(RouterTypeEcho))
 
 		app.Get("/task/{tid}", func(ctx Context) error {
 			return ctx.String(http.StatusOK, ctx.PathParam("tid"))
@@ -41,14 +41,14 @@ func TestGorillaMuxDuplicaPattern(t *testing.T) {
 			app.ServeHTTP(w, req)
 
 			require.Equal(http.StatusOK, w.Code)
-			require.Equal("VERSION", w.Body.String())
+			require.Equal("-VERSION-", w.Body.String())
 		}
 	})
 
 	t.Run("allow duplicate route 2", func(t *testing.T) {
 		key := randomString()
 
-		app := New(WithRouterType(RouterTypeGorillaMux))
+		app := New(WithRouterType(RouterTypeEcho))
 
 		app.Get("/task/VERSION", func(ctx Context) error {
 			return ctx.String(http.StatusOK, "-VERSION-")
