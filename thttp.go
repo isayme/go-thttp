@@ -23,10 +23,10 @@ type App struct {
 	middlewares []MiddlewareFunc
 
 	notFoundHandler HandlerFunc
-	errorHandler    func(Context, error) error
+	errorHandler    ErrorHandlerFunc
 }
 
-func New() *App {
+func New(options ...optionFunc) *App {
 	app := &App{
 		router: NewHttpServeMux(),
 		// router: NewGorillaMux(),
@@ -36,6 +36,13 @@ func New() *App {
 
 	app.NotFound(app.defaultNotFoundHandler)
 	app.ErrorHandler(app.defaultErrorHandler)
+
+	// apply options
+	if len(options) > 0 {
+		for _, option := range options {
+			option(app)
+		}
+	}
 
 	app.pool.New = func() any {
 		return NewContext(nil, nil)
@@ -179,5 +186,6 @@ func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 }
 
 type HandlerFunc func(ctx Context) error
+type ErrorHandlerFunc func(ctx Context, err error) error
 
 type Skipper func(ctx Context) bool
