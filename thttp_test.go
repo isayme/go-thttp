@@ -266,6 +266,25 @@ func TestNotFound(t *testing.T) {
 		require.Equal(http.StatusNotFound, w.Code)
 	})
 
+	t.Run("custom not found", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/method", nil)
+
+		w := httptest.NewRecorder()
+
+		app := New()
+
+		msg := randomString()
+
+		app.NotFound(func(ctx Context) error {
+			return ctx.String(http.StatusNotImplemented, msg)
+		})
+
+		app.ServeHTTP(w, req)
+
+		require.Equal(http.StatusNotImplemented, w.Code)
+		require.Equal(msg, w.Body.String())
+	})
+
 	t.Run("error handler", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/method", nil)
 
@@ -282,6 +301,29 @@ func TestNotFound(t *testing.T) {
 
 		require.Equal(http.StatusInternalServerError, w.Code)
 		require.Equal(errMsg, w.Body.String())
+	})
+
+	t.Run("custom error handler", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/method", nil)
+
+		w := httptest.NewRecorder()
+
+		app := New()
+
+		errMsgPrefix := randomString()
+		app.ErrorHandler(func(ctx Context, err error) error {
+			return ctx.String(http.StatusBadGateway, errMsgPrefix+err.Error())
+		})
+
+		errMsg := randomString()
+		app.Get("/method", func(ctx Context) error {
+			return fmt.Errorf(errMsg)
+		})
+
+		app.ServeHTTP(w, req)
+
+		require.Equal(http.StatusBadGateway, w.Code)
+		require.Equal(errMsgPrefix+errMsg, w.Body.String())
 	})
 }
 

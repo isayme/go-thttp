@@ -21,6 +21,9 @@ type App struct {
 
 	router      Router
 	middlewares []MiddlewareFunc
+
+	notFoundHandler HandlerFunc
+	errorHandler    func(Context, error) error
 }
 
 func New() *App {
@@ -30,6 +33,9 @@ func New() *App {
 		// router:      NewHttprouterMux(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
+
+	app.NotFound(app.defaultNotFoundHandler)
+	app.ErrorHandler(app.defaultErrorHandler)
 
 	app.pool.New = func() any {
 		return NewContext(nil, nil)
@@ -104,6 +110,22 @@ func (app *App) Group(prefix string, middleware ...MiddlewareFunc) *Group {
 	return g
 }
 
+func (app *App) defaultNotFoundHandler(ctx Context) error {
+	return ctx.String(http.StatusNotFound, "404 page not found")
+}
+
+func (app *App) NotFound(handler HandlerFunc) {
+	app.notFoundHandler = handler
+}
+
+func (app *App) defaultErrorHandler(ctx Context, err error) error {
+	return ctx.String(http.StatusInternalServerError, err.Error())
+}
+
+func (app *App) ErrorHandler(handler func(Context, error) error) {
+	app.errorHandler = handler
+}
+
 func (app *App) Start(address string) error {
 	return http.ListenAndServe(address, app)
 }
@@ -115,17 +137,16 @@ func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	h, params, ok := app.router.Match(w, r)
 	if !ok {
-		w.WriteHeader(404)
-		w.Write([]byte("404"))
-		return
+		h = app.notFoundHandler
 	}
 
-	ctx.SetPathParam(params(ctx))
+	if params != nil {
+		ctx.SetPathParam(params(ctx))
+	}
 
 	err := h(ctx)
 	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte(err.Error()))
+		app.errorHandler(ctx, err)
 	}
 }
 
