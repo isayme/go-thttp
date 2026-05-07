@@ -89,11 +89,16 @@ func TestStdRouter(t *testing.T) {
 		require.Equal(http.StatusOK, w.Code)
 		require.Equal(key, w.Body.String())
 	})
+}
+
+// net/http match by most match 最具体优先
+func TestStdDuplicaPattern(t *testing.T) {
+	require := require.New(t)
 
 	t.Run("allow duplicate route 1", func(t *testing.T) {
 		key := randomString()
 
-		app := New()
+		app := New(WithRouterType(RouterTypeStd))
 
 		app.Get("/task/{tid}", func(ctx Context) error {
 			return ctx.String(http.StatusOK, ctx.PathParam("tid"))

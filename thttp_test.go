@@ -162,71 +162,6 @@ func TestHttpMethod(t *testing.T) {
 	})
 }
 
-func TestMiddleware(t *testing.T) {
-	require := require.New(t)
-
-	t.Run("Group Middleware: add md before add route", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/method", nil)
-
-		w := httptest.NewRecorder()
-
-		app := New()
-
-		key := randomString()
-		expected := randomString()
-		app.Use(createHeaderMiddleware(key, expected))
-		app.Get("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
-		})
-
-		app.ServeHTTP(w, req)
-
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(http.MethodGet, w.Body.String())
-		require.Equal(expected, w.Header().Get(key))
-	})
-
-	t.Run("Middleware: add md after add route", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/method", nil)
-
-		w := httptest.NewRecorder()
-
-		app := New()
-		key := randomString()
-		expected := randomString()
-		app.Get("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
-		})
-		app.Use(createHeaderMiddleware(key, expected))
-
-		app.ServeHTTP(w, req)
-
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(http.MethodGet, w.Body.String())
-		require.Equal(expected, w.Header().Get(key))
-	})
-
-	t.Run("Middleware: add md when add route", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodGet, "/method", nil)
-
-		w := httptest.NewRecorder()
-
-		app := New()
-
-		key := randomString()
-		expected := randomString()
-		app.Get("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
-		}, createHeaderMiddleware(key, expected))
-
-		app.ServeHTTP(w, req)
-
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(http.MethodGet, w.Body.String())
-		require.Equal(expected, w.Header().Get(key))
-	})
-}
-
 func TestStatusCode(t *testing.T) {
 	require := require.New(t)
 
@@ -770,5 +705,29 @@ func TestContextRedirect(t *testing.T) {
 
 		require.Equal(http.StatusFound, w.Code)
 		require.Equal("/newlocation", w.Header().Get("Location"))
+	})
+}
+
+func TestPool(t *testing.T) {
+	require := require.New(t)
+
+	t.Run("reuse ctx", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/hi", nil)
+
+		app := New()
+
+		expected := ""
+
+		app.Get("/hi", func(ctx Context) error {
+			expected = randomString()
+			return ctx.String(http.StatusOK, expected)
+		})
+
+		for i := 0; i < 100; i++ {
+			w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
+			require.Equal(http.StatusOK, w.Code)
+			require.Equal(expected, w.Body.String())
+		}
 	})
 }

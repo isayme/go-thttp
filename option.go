@@ -13,3 +13,9 @@ func WithErrorHandler(handler func(Context, error) error) optionFunc {
 		app.errorHandler = handler
 	}
 }
+
+func WithRouterType(typ RouterType) optionFunc {
+	return func(app *App) {
+		app.useRouter(typ)
+	}
+}

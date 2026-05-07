@@ -11,15 +11,24 @@ type HttpServeMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func NewHttpServeMux() *HttpServeMux {
+func NewHttpServeMux() Router {
 	return &HttpServeMux{
 		r:           http.NewServeMux(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }
 
-func (router *HttpServeMux) PatternType() PatternType {
-	return BracePattern
+func (router *HttpServeMux) FormatSegment(seg Segment) string {
+	switch seg.Type {
+	case Static:
+		return seg.Name
+	case Param:
+		return "{" + seg.Name + "}"
+	case CatchAll:
+		return "{" + seg.Name + "...}"
+	default:
+		panic("not supported segment type")
+	}
 }
 
 func (router *HttpServeMux) Use(middlewares ...MiddlewareFunc) {

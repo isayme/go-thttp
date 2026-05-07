@@ -3,6 +3,8 @@ package thttp
 import (
 	"context"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 )
 
@@ -28,12 +30,10 @@ type App struct {
 
 func New(options ...optionFunc) *App {
 	app := &App{
-		router: NewHttpServeMux(),
-		// router: NewGorillaMux(),
-		// router:      NewHttprouterMux(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 
+	app.defaultRouter()
 	app.NotFound(app.defaultNotFoundHandler)
 	app.ErrorHandler(app.defaultErrorHandler)
 
@@ -58,8 +58,18 @@ func (app *App) getHandler(handler HandlerFunc) HandlerFunc {
 	}
 }
 
+func (app *App) formatPattern(pattern string) string {
+	segs := ParsePath(pattern)
+	parts := make([]string, 0, len(segs))
+	for _, s := range segs {
+		parts = append(parts, app.router.FormatSegment(s))
+	}
+
+	return "/" + strings.Join(parts, "/")
+}
+
 func (app *App) Handle(method, pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
-	pattern = convertPattern(pattern, app.router.PatternType())
+	pattern = app.formatPattern(pattern)
 	app.router.Handle(method, pattern, applyMiddleware(app.getHandler(handler), middleware...))
 }
 
@@ -117,6 +127,24 @@ func (app *App) Group(prefix string, middleware ...MiddlewareFunc) *Group {
 	return g
 }
 
+func (app *App) useRouter(typ RouterType) {
+	fn, ok := routerTypeMap[typ]
+	if !ok {
+		panic("invalid router type")
+	}
+
+	app.router = fn()
+}
+
+func (app *App) defaultRouter() {
+	typ := os.Getenv("THTTP_ROUTER_TYPE")
+	if typ == "" {
+		app.useRouter(RouterTypeStd)
+	} else {
+		app.useRouter(RouterType(typ))
+	}
+}
+
 func (app *App) defaultNotFoundHandler(ctx Context) error {
 	return ctx.String(http.StatusNotFound, "404 page not found")
 }
@@ -138,7 +166,8 @@ func (app *App) Start(address string) error {
 }
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := NewContext(w, r)
+	ctx := app.pool.Get().(Context)
+	ctx.Reset(r, w)
 	r = r.WithContext(context.WithValue(r.Context(), ContextKey, ctx))
 	ctx.SetRequest(r)
 

@@ -36,3 +36,12 @@ func TestWithErrorHandler(t *testing.T) {
 		require.Equal(errMsg, app.errorHandler(nil, nil).Error())
 	})
 }
+
+func TestWithRouterType(t *testing.T) {
+	require := require.New(t)
+
+	t.Run("custom router type", func(t *testing.T) {
+		app := New(WithRouterType(RouterTypeHttprouter))
+		require.IsType(&HttprouterMux{}, app.router)
+	})
+}

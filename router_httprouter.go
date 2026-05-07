@@ -2,6 +2,7 @@ package thttp
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -11,15 +12,28 @@ type HttprouterMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func NewHttprouterMux() *HttprouterMux {
+func NewHttprouterMux() Router {
 	return &HttprouterMux{
 		r:           httprouter.New(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }
 
-func (router *HttprouterMux) PatternType() PatternType {
-	return ColonPattern
+func (router *HttprouterMux) FormatSegment(seg Segment) string {
+	switch seg.Type {
+	case Static:
+		return seg.Name
+	case Param:
+		return ":" + seg.Name
+	case CatchAll:
+		if seg.Name == "*" {
+			return "*"
+		} else {
+			return "*" + seg.Name
+		}
+	default:
+		panic("not supported segment type")
+	}
 }
 
 func (router *HttprouterMux) Use(middlewares ...MiddlewareFunc) {
@@ -69,7 +83,10 @@ func (pp *HttprouterMuxPathParams) Get(name string) string {
 
 	params, ok := value.(httprouter.Params)
 	if ok {
-		return params.ByName(name)
+		value := params.ByName(name)
+		// catch-all param has a leading slash, remove it.
+		value = strings.TrimPrefix(value, "/")
+		return value
 	}
 
 	return ""

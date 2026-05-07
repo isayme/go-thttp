@@ -11,15 +11,24 @@ type GorillaMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func NewGorillaMux() *GorillaMux {
+func NewGorillaMux() Router {
 	return &GorillaMux{
 		r:           mux.NewRouter(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }
 
-func (router *GorillaMux) PatternType() PatternType {
-	return BracePattern
+func (router *GorillaMux) FormatSegment(seg Segment) string {
+	switch seg.Type {
+	case Static:
+		return seg.Name
+	case Param:
+		return "{" + seg.Name + "}"
+	case CatchAll:
+		return "{" + seg.Name + ":.*}"
+	default:
+		panic("not supported segment type")
+	}
 }
 
 func (router *GorillaMux) Use(middlewares ...MiddlewareFunc) {

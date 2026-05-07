@@ -120,11 +120,6 @@ func (ctx *thttpContext) SetPathParam(fn PathParams) {
 }
 
 func (ctx *thttpContext) PathParam(name string) string {
-	// vars, _ := ctx.Context().Value(PathParamsCtxKey).(map[string]string)
-	// vars, _ := ctx.Get(PathParamsCtxKey).(map[string]string)
-	// vars := mux.Vars(ctx.r)
-	// slog.Info("%v", ctx.Context().Value(PathParamsCtxKey))
-	// return vars[name]
 	return ctx.params.Get(name)
 }
 
@@ -226,15 +221,13 @@ func (ctx *thttpContext) Redirect(code int, url string) error {
 	ctx.w.WriteHeader(code)
 	return nil
 }
-func (ctx *thttpContext) handleError(err error) {
-	ctx.w.WriteHeader(http.StatusInternalServerError)
-	ctx.w.Write([]byte(err.Error()))
-}
 
 func (ctx *thttpContext) Reset(r *http.Request, w http.ResponseWriter) {
 	ctx.r = r
-	ctx.query = nil
 	ctx.w = w
+	ctx.query = nil
+	ctx.params = nil
+	ctx.store = make(map[interface{}]interface{})
 }
 
 func MustGetContextFromRequest(r *http.Request) Context {
