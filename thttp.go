@@ -21,6 +21,7 @@ const (
 type App struct {
 	pool sync.Pool
 
+	prefix      string
 	router      Router
 	middlewares []MiddlewareFunc
 
@@ -69,7 +70,7 @@ func (app *App) formatPattern(pattern string) string {
 }
 
 func (app *App) Handle(method, pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
-	pattern = app.formatPattern(pattern)
+	pattern = app.formatPattern(app.prefix + pattern)
 	app.router.Handle(method, pattern, applyMiddleware(app.getHandler(handler), middleware...))
 }
 
