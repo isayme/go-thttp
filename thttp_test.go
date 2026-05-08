@@ -212,13 +212,11 @@ func TestNotFound(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			app := New(WithRouterType(routerType))
-
 			msg := randomString()
 
-			app.NotFound(func(ctx Context) error {
+			app := New(WithRouterType(routerType), WithNotFoundHandler(func(ctx Context) error {
 				return ctx.String(http.StatusNotImplemented, msg)
-			})
+			}))
 
 			app.ServeHTTP(w, req)
 
@@ -255,12 +253,10 @@ func TestErrorHandler(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			app := New(WithRouterType(routerType))
-
 			errMsgPrefix := randomString()
-			app.ErrorHandler(func(ctx Context, err error) error {
+			app := New(WithRouterType(routerType), WithErrorHandler(func(ctx Context, err error) error {
 				return ctx.String(http.StatusBadGateway, errMsgPrefix+err.Error())
-			})
+			}))
 
 			errMsg := randomString()
 			app.Get("/method", func(ctx Context) error {

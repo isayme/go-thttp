@@ -36,14 +36,14 @@ type App struct {
 	logger *slog.Logger
 }
 
-func New(options ...optionFunc) *App {
+func New(options ...OptionFunc) *App {
 	app := &App{
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 
 	app.defaultRouter()
-	app.NotFound(app.defaultNotFoundHandler)
-	app.ErrorHandler(app.defaultErrorHandler)
+	app.notFoundHandler = app.defaultNotFoundHandler
+	app.errorHandler = app.defaultErrorHandler
 
 	// apply options
 	if len(options) > 0 {
@@ -189,16 +189,8 @@ func (app *App) defaultNotFoundHandler(ctx Context) error {
 	return ctx.String(http.StatusNotFound, "404 page not found")
 }
 
-func (app *App) NotFound(handler HandlerFunc) {
-	app.notFoundHandler = handler
-}
-
 func (app *App) defaultErrorHandler(ctx Context, err error) error {
 	return ctx.String(http.StatusInternalServerError, err.Error())
-}
-
-func (app *App) ErrorHandler(handler func(Context, error) error) {
-	app.errorHandler = handler
 }
 
 func (app *App) Start(address string) error {
