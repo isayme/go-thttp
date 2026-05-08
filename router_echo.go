@@ -49,13 +49,13 @@ func (router *echoMux) Handle(method, pattern string, h HandlerFunc, middleware 
 	handler := applyMiddleware(h, middleware...)
 	router.r.Add(method, pattern, func(echoCtx *echo.Context) error {
 		r := echoCtx.Request()
-		ctx := MustGetContextFromRequest(r)
-		SetHandlerInCtx(ctx, handler)
+		ctx := mustGetContextFromRequest(r)
+		setHandlerInCtx(ctx, handler)
 		return nil
 	})
 }
 
-func (router *echoMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *echoMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamGetter, bool) {
 	echoCtx := echo.NewContext(r, w, router.r)
 	handler := router.r.Router().Route(echoCtx)
 
@@ -64,31 +64,31 @@ func (router *echoMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFun
 		return nil, nil, false
 	}
 
-	ctx := MustGetContextFromRequest(r)
-	ctx.Set(PathRawParamsCtxKey, echoCtx)
+	ctx := mustGetContextFromRequest(r)
+	ctx.Set(pathRawParamsCtxKey, echoCtx)
 
-	return MustGetHandlerFromCtx(ctx), newEchoMuxPathParams, true
+	return mustGetHandlerFromCtx(ctx), newEchoMuxPathParams(ctx), true
 }
 
 type echoMuxPathParams struct {
 	ctx Context
 }
 
-func newEchoMuxPathParams(ctx Context) PathParams {
+func newEchoMuxPathParams(ctx Context) PathParamGetter {
 	return &echoMuxPathParams{
 		ctx: ctx,
 	}
 }
 
 func (pp *echoMuxPathParams) Get(name string) string {
-	value := pp.ctx.Get(PathRawParamsCtxKey)
+	value := pp.ctx.Get(pathRawParamsCtxKey)
 	if value == nil {
 		return ""
 	}
 
 	echoCtx, ok := value.(*echo.Context)
 	if ok {
-		if v, ok := pp.ctx.Get(CatchAllPathParamCtxKey).(string); ok && v == name {
+		if v, ok := pp.ctx.Get(catchAllPathParamCtxKey).(string); ok && v == name {
 			name = "*"
 		}
 

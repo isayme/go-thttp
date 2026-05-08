@@ -15,10 +15,6 @@ func RequestID() thttp.MiddlewareFunc {
 				id = generator()
 			}
 
-			kvs, ok := ctx.Context().Value(thttp.LoggerCtxKey).(map[string]interface{})
-			if ok {
-				kvs["request_id"] = id
-			}
 			ctx.SetHeader(thttp.HeaderXRequestID, id)
 
 			return next(ctx)

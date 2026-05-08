@@ -13,14 +13,20 @@ import (
 type contextKey int
 
 const (
-	ContextKey contextKey = iota
-	PathParamsCtxKey
-	CatchAllPathParamCtxKey
-	PathRawParamsCtxKey
-	HandlerFoundKey
-	RequestIDKey
-	HandlerKey
-	LoggerCtxKey
+	// key to store Context
+	requestCtxKey contextKey = iota
+	// key to store path param getter
+	pathParamsCtxKey
+	// store catch-all path name, some router use * as name.
+	catchAllPathParamCtxKey
+	// store anything help get router path params
+	pathRawParamsCtxKey
+	// store handler not found flag, some router has no Match or Lookup like method to check route match.
+	handlerFoundKey
+	// store request id
+	requestIDKey
+	// store handler
+	handlerKey
 )
 
 type App struct {
@@ -104,7 +110,7 @@ func (app *App) Handle(method, pattern string, handler HandlerFunc, middleware .
 	if catchAllKey != "" {
 		md := func(next HandlerFunc) HandlerFunc {
 			return func(ctx Context) error {
-				ctx.Set(CatchAllPathParamCtxKey, catchAllKey)
+				ctx.Set(catchAllPathParamCtxKey, catchAllKey)
 				return next(ctx)
 			}
 		}
@@ -221,16 +227,16 @@ func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer app.pool.Put(ctx)
 
 	ctx.Reset(r, w, app.logger)
-	r = r.WithContext(context.WithValue(r.Context(), ContextKey, ctx))
+	r = r.WithContext(context.WithValue(r.Context(), requestCtxKey, ctx))
 	ctx.SetRequest(r)
 
-	h, params, ok := app.router.Match(w, r)
+	h, pathParamGetter, ok := app.router.Match(w, r)
 	if !ok {
 		h = app.notFoundHandler
 	}
 
-	if params != nil {
-		ctx.SetPathParam(params(ctx))
+	if pathParamGetter != nil {
+		ctx.SetPathParamGetter(pathParamGetter)
 	}
 
 	err := h(ctx)

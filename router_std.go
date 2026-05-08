@@ -42,12 +42,12 @@ func (router *httpServeMux) Use(middlewares ...MiddlewareFunc) {
 func (router *httpServeMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
 	router.r.HandleFunc(fmt.Sprintf("%s %s", method, pattern), func(w http.ResponseWriter, r *http.Request) {
-		ctx := MustGetContextFromRequest(r)
-		SetHandlerInCtx(ctx, handler)
+		ctx := mustGetContextFromRequest(r)
+		setHandlerInCtx(ctx, handler)
 	})
 }
 
-func (router *httpServeMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *httpServeMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamGetter, bool) {
 	handler, pattern := router.r.Handler(r)
 	if pattern == "" {
 		return nil, nil, false
@@ -56,16 +56,16 @@ func (router *httpServeMux) Match(w http.ResponseWriter, r *http.Request) (Handl
 	handler.ServeHTTP(w, r)
 	populatePathValues(r, pattern)
 
-	ctx := MustGetContextFromRequest(r)
+	ctx := mustGetContextFromRequest(r)
 
-	return MustGetHandlerFromCtx(ctx), newHttpServeMuxPathParams, true
+	return mustGetHandlerFromCtx(ctx), newHttpServeMuxPathParams(ctx), true
 }
 
 type httpServeMuxPathParams struct {
 	ctx Context
 }
 
-func newHttpServeMuxPathParams(ctx Context) PathParams {
+func newHttpServeMuxPathParams(ctx Context) PathParamGetter {
 	return &httpServeMuxPathParams{ctx: ctx}
 }
 

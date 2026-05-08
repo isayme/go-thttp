@@ -43,12 +43,12 @@ func (router *gorillaMux) Handle(method, pattern string, h HandlerFunc, middlewa
 	handler := applyMiddleware(h, middleware...)
 
 	router.r.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-		ctx := MustGetContextFromRequest(r)
-		SetHandlerInCtx(ctx, handler)
+		ctx := mustGetContextFromRequest(r)
+		setHandlerInCtx(ctx, handler)
 	}).Methods(method)
 }
 
-func (router *gorillaMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *gorillaMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamGetter, bool) {
 	rm := mux.RouteMatch{}
 
 	found := router.r.Match(r, &rm)
@@ -57,24 +57,24 @@ func (router *gorillaMux) Match(w http.ResponseWriter, r *http.Request) (Handler
 	}
 
 	rm.Handler.ServeHTTP(w, r)
-	ctx := MustGetContextFromRequest(r)
-	ctx.Set(PathRawParamsCtxKey, rm.Vars)
+	ctx := mustGetContextFromRequest(r)
+	ctx.Set(pathRawParamsCtxKey, rm.Vars)
 
-	return MustGetHandlerFromCtx(ctx), newGorillaMuxPathParams, true
+	return mustGetHandlerFromCtx(ctx), newGorillaMuxPathParams(ctx), true
 }
 
 type gorillaMuxPathParams struct {
 	ctx Context
 }
 
-func newGorillaMuxPathParams(ctx Context) PathParams {
+func newGorillaMuxPathParams(ctx Context) PathParamGetter {
 	return &gorillaMuxPathParams{
 		ctx: ctx,
 	}
 }
 
 func (pp *gorillaMuxPathParams) Get(name string) string {
-	value := pp.ctx.Get(PathRawParamsCtxKey)
+	value := pp.ctx.Get(pathRawParamsCtxKey)
 	if value == nil {
 		return ""
 	}

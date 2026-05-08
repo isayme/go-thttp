@@ -42,8 +42,8 @@ type Context interface {
 
 	// Method returns the HTTP method (GET, POST, etc.).
 	Method() string
-	// SetPathParam sets the path parameters.
-	SetPathParam(fn PathParams)
+	// SetPathParamGetter sets the path parameters.
+	SetPathParamGetter(fn PathParamGetter)
 	// PathParam returns the path parameter value by name.
 	PathParam(name string) string
 	// QueryParam returns the query parameter value by name.
@@ -94,7 +94,7 @@ type thttpContext struct {
 	r *http.Request
 	w http.ResponseWriter
 
-	params PathParams
+	params PathParamGetter
 
 	query url.Values
 
@@ -150,8 +150,8 @@ func (ctx *thttpContext) Method() string {
 	return ctx.r.Method
 }
 
-func (ctx *thttpContext) SetPathParam(fn PathParams) {
-	ctx.Set(PathParamsCtxKey, fn)
+func (ctx *thttpContext) SetPathParamGetter(fn PathParamGetter) {
+	ctx.Set(pathParamsCtxKey, fn)
 	ctx.params = fn
 }
 
@@ -274,20 +274,20 @@ func (ctx *thttpContext) Reset(r *http.Request, w http.ResponseWriter, logger *s
 	ctx.store = make(map[interface{}]interface{})
 }
 
-func MustGetContextFromRequest(r *http.Request) Context {
-	ctx := r.Context().Value(ContextKey)
+func mustGetContextFromRequest(r *http.Request) Context {
+	ctx := r.Context().Value(requestCtxKey)
 	if ctx == nil {
 		panic("thttp: no context found in request")
 	}
 	return ctx.(Context)
 }
 
-func SetHandlerInCtx(ctx Context, h HandlerFunc) {
-	ctx.Set(HandlerKey, h)
+func setHandlerInCtx(ctx Context, h HandlerFunc) {
+	ctx.Set(handlerKey, h)
 }
 
-func MustGetHandlerFromCtx(ctx Context) HandlerFunc {
-	h := ctx.Get(HandlerKey)
+func mustGetHandlerFromCtx(ctx Context) HandlerFunc {
+	h := ctx.Get(handlerKey)
 	if h == nil {
 		panic("thttp: no handler found in context")
 	}

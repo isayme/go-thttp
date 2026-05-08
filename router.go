@@ -33,21 +33,19 @@ type Router interface {
 
 	// Match finds a handler for the given request.
 	// Returns the handler, path parameter function, and whether a match was found.
-	Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool)
+	Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamGetter, bool)
 
 	// FormatSegment converts a thttp Segment to the router's native pattern syntax.
 	FormatSegment(seg Segment) string
 }
 
-// PathParamsFunc is a function that returns path parameters for a request.
-type PathParamsFunc func(ctx Context) PathParams
-
-// PathParams is an interface for accessing path parameter values.
-type PathParams interface {
+// PathParamGetter is an interface for accessing path parameter values.
+type PathParamGetter interface {
 	// Get returns the path parameter value by name.
 	Get(name string) string
 }
 
+// RegisterRouter registers a new router implementation.
 func RegisterRouter(routerType RouterType, newRouter NewRouterFunc) {
 	allRouterTypes = append(allRouterTypes, routerType)
 	routerTypeMap[routerType] = newRouter

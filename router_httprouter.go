@@ -47,12 +47,12 @@ func (router *httprouterMux) Use(middlewares ...MiddlewareFunc) {
 func (router *httprouterMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
 	router.r.Handle(method, pattern, func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		ctx := MustGetContextFromRequest(r)
-		SetHandlerInCtx(ctx, handler)
+		ctx := mustGetContextFromRequest(r)
+		setHandlerInCtx(ctx, handler)
 	})
 }
 
-func (router *httprouterMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *httprouterMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamGetter, bool) {
 	handler, params, redirect := router.r.Lookup(r.Method, r.URL.Path)
 	if redirect {
 		return nil, nil, false
@@ -62,25 +62,25 @@ func (router *httprouterMux) Match(w http.ResponseWriter, r *http.Request) (Hand
 	}
 
 	handler(w, r, params)
-	ctx := MustGetContextFromRequest(r)
+	ctx := mustGetContextFromRequest(r)
 	if len(params) > 0 {
-		ctx.Set(PathRawParamsCtxKey, params)
+		ctx.Set(pathRawParamsCtxKey, params)
 	}
-	return MustGetHandlerFromCtx(ctx), newHttprouterMuxPathParams, true
+	return mustGetHandlerFromCtx(ctx), newHttprouterMuxPathParams(ctx), true
 }
 
 type httprouterMuxPathParams struct {
 	ctx Context
 }
 
-func newHttprouterMuxPathParams(ctx Context) PathParams {
+func newHttprouterMuxPathParams(ctx Context) PathParamGetter {
 	return &httprouterMuxPathParams{
 		ctx: ctx,
 	}
 }
 
 func (pp *httprouterMuxPathParams) Get(name string) string {
-	value := pp.ctx.Get(PathRawParamsCtxKey)
+	value := pp.ctx.Get(pathRawParamsCtxKey)
 	if value == nil {
 		return ""
 	}

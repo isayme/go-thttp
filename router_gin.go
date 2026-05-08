@@ -54,36 +54,36 @@ func (router *ginMux) Handle(method, pattern string, h HandlerFunc, middleware .
 	handler := applyMiddleware(h, middleware...)
 	router.r.Handle(method, pattern, func(ginCtx *gin.Context) {
 		r := ginCtx.Request
-		ctx := MustGetContextFromRequest(r)
-		SetHandlerInCtx(ctx, handler)
+		ctx := mustGetContextFromRequest(r)
+		setHandlerInCtx(ctx, handler)
 
-		ctx.Set(PathRawParamsCtxKey, ginCtx.Params)
-		ctx.Set(HandlerFoundKey, true)
+		ctx.Set(pathRawParamsCtxKey, ginCtx.Params)
+		ctx.Set(handlerFoundKey, true)
 	})
 }
 
-func (router *ginMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *ginMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamGetter, bool) {
 	router.r.ServeHTTP(newFakeResponseWriter(), r)
 
-	ctx := MustGetContextFromRequest(r)
-	if _, ok := ctx.Get(HandlerFoundKey).(bool); !ok {
+	ctx := mustGetContextFromRequest(r)
+	if _, ok := ctx.Get(handlerFoundKey).(bool); !ok {
 		return nil, nil, false
 	}
-	return MustGetHandlerFromCtx(ctx), newGinMuxPathParams, true
+	return mustGetHandlerFromCtx(ctx), newGinMuxPathParams(ctx), true
 }
 
 type ginMuxPathParams struct {
 	ctx Context
 }
 
-func newGinMuxPathParams(ctx Context) PathParams {
+func newGinMuxPathParams(ctx Context) PathParamGetter {
 	return &ginMuxPathParams{
 		ctx: ctx,
 	}
 }
 
 func (pp *ginMuxPathParams) Get(name string) string {
-	value := pp.ctx.Get(PathRawParamsCtxKey)
+	value := pp.ctx.Get(pathRawParamsCtxKey)
 	if value == nil {
 		return ""
 	}
