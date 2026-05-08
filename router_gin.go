@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type GinMux struct {
+type ginMux struct {
 	r           *gin.Engine
 	middlewares []MiddlewareFunc
 }
@@ -19,13 +19,13 @@ func newGinMux() Router {
 	// ginEngine.NoRoute(func(ctx *gin.Context) {
 	// 	// ctx.Writer = newFakeResponseWriter()
 	// })
-	return &GinMux{
+	return &ginMux{
 		r:           ginEngine,
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }
 
-func (router *GinMux) FormatSegment(seg Segment) string {
+func (router *ginMux) FormatSegment(seg Segment) string {
 	switch seg.Type {
 	case Static:
 		return seg.Name
@@ -42,11 +42,11 @@ func (router *GinMux) FormatSegment(seg Segment) string {
 	}
 }
 
-func (router *GinMux) Use(middlewares ...MiddlewareFunc) {
+func (router *ginMux) Use(middlewares ...MiddlewareFunc) {
 	router.middlewares = append(router.middlewares, middlewares...)
 }
 
-func (router *GinMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
+func (router *ginMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
 	router.r.Handle(method, pattern, func(ginCtx *gin.Context) {
 		r := ginCtx.Request
@@ -58,7 +58,7 @@ func (router *GinMux) Handle(method, pattern string, h HandlerFunc, middleware .
 	})
 }
 
-func (router *GinMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *ginMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
 	router.r.ServeHTTP(newFakeResponseWriter(), r)
 
 	ctx := MustGetContextFromRequest(r)

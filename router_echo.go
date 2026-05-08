@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-type EchoMux struct {
+type echoMux struct {
 	r           *echo.Echo
 	middlewares []MiddlewareFunc
 }
@@ -14,13 +14,13 @@ type EchoMux struct {
 func newEchoMux() Router {
 	routerConfig := echo.RouterConfig{}
 
-	return &EchoMux{
+	return &echoMux{
 		r:           echo.NewWithConfig(echo.Config{Router: echo.NewRouter(routerConfig)}),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }
 
-func (router *EchoMux) FormatSegment(seg Segment) string {
+func (router *echoMux) FormatSegment(seg Segment) string {
 	switch seg.Type {
 	case Static:
 		return seg.Name
@@ -37,11 +37,11 @@ func (router *EchoMux) FormatSegment(seg Segment) string {
 	}
 }
 
-func (router *EchoMux) Use(middlewares ...MiddlewareFunc) {
+func (router *echoMux) Use(middlewares ...MiddlewareFunc) {
 	router.middlewares = append(router.middlewares, middlewares...)
 }
 
-func (router *EchoMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
+func (router *echoMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
 	router.r.Add(method, pattern, func(echoCtx *echo.Context) error {
 		r := echoCtx.Request()
@@ -51,7 +51,7 @@ func (router *EchoMux) Handle(method, pattern string, h HandlerFunc, middleware 
 	})
 }
 
-func (router *EchoMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *echoMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
 	echoCtx := echo.NewContext(r, w, router.r)
 	handler := router.r.Router().Route(echoCtx)
 

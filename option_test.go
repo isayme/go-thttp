@@ -44,7 +44,7 @@ func TestWithRouterType(t *testing.T) {
 
 	t.Run("custom router type", func(t *testing.T) {
 		app := New(WithRouterType(RouterTypeHttprouter))
-		require.IsType(&HttprouterMux{}, app.router)
+		require.IsType(&httprouterMux{}, app.router)
 	})
 }
 

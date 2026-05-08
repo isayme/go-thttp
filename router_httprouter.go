@@ -7,19 +7,19 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-type HttprouterMux struct {
+type httprouterMux struct {
 	r           *httprouter.Router
 	middlewares []MiddlewareFunc
 }
 
 func newHttprouterMux() Router {
-	return &HttprouterMux{
+	return &httprouterMux{
 		r:           httprouter.New(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }
 
-func (router *HttprouterMux) FormatSegment(seg Segment) string {
+func (router *httprouterMux) FormatSegment(seg Segment) string {
 	switch seg.Type {
 	case Static:
 		return seg.Name
@@ -36,11 +36,11 @@ func (router *HttprouterMux) FormatSegment(seg Segment) string {
 	}
 }
 
-func (router *HttprouterMux) Use(middlewares ...MiddlewareFunc) {
+func (router *httprouterMux) Use(middlewares ...MiddlewareFunc) {
 	router.middlewares = append(router.middlewares, middlewares...)
 }
 
-func (router *HttprouterMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
+func (router *httprouterMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
 	router.r.Handle(method, pattern, func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		ctx := MustGetContextFromRequest(r)
@@ -48,7 +48,7 @@ func (router *HttprouterMux) Handle(method, pattern string, h HandlerFunc, middl
 	})
 }
 
-func (router *HttprouterMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *httprouterMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
 	handler, params, redirect := router.r.Lookup(r.Method, r.URL.Path)
 	if redirect {
 		return nil, nil, false
@@ -62,20 +62,20 @@ func (router *HttprouterMux) Match(w http.ResponseWriter, r *http.Request) (Hand
 	if len(params) > 0 {
 		ctx.Set(PathRawParamsCtxKey, params)
 	}
-	return MustGetHandlerFromCtx(ctx), NewHttprouterMuxPathParams, true
+	return MustGetHandlerFromCtx(ctx), newHttprouterMuxPathParams, true
 }
 
-type HttprouterMuxPathParams struct {
+type httprouterMuxPathParams struct {
 	ctx Context
 }
 
-func NewHttprouterMuxPathParams(ctx Context) PathParams {
-	return &HttprouterMuxPathParams{
+func newHttprouterMuxPathParams(ctx Context) PathParams {
+	return &httprouterMuxPathParams{
 		ctx: ctx,
 	}
 }
 
-func (pp *HttprouterMuxPathParams) Get(name string) string {
+func (pp *httprouterMuxPathParams) Get(name string) string {
 	value := pp.ctx.Get(PathRawParamsCtxKey)
 	if value == nil {
 		return ""

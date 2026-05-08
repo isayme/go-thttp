@@ -6,19 +6,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type GorillaMux struct {
+type gorillaMux struct {
 	r           *mux.Router
 	middlewares []MiddlewareFunc
 }
 
 func newGorillaMux() Router {
-	return &GorillaMux{
+	return &gorillaMux{
 		r:           mux.NewRouter(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }
 
-func (router *GorillaMux) FormatSegment(seg Segment) string {
+func (router *gorillaMux) FormatSegment(seg Segment) string {
 	switch seg.Type {
 	case Static:
 		return seg.Name
@@ -31,11 +31,11 @@ func (router *GorillaMux) FormatSegment(seg Segment) string {
 	}
 }
 
-func (router *GorillaMux) Use(middlewares ...MiddlewareFunc) {
+func (router *gorillaMux) Use(middlewares ...MiddlewareFunc) {
 	router.middlewares = append(router.middlewares, middlewares...)
 }
 
-func (router *GorillaMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
+func (router *gorillaMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
 
 	router.r.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +44,7 @@ func (router *GorillaMux) Handle(method, pattern string, h HandlerFunc, middlewa
 	}).Methods(method)
 }
 
-func (router *GorillaMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *gorillaMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
 	rm := mux.RouteMatch{}
 
 	found := router.r.Match(r, &rm)

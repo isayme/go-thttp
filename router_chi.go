@@ -6,19 +6,19 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type ChiMux struct {
+type chiMux struct {
 	r           *chi.Mux
 	middlewares []MiddlewareFunc
 }
 
 func newChiMux() Router {
-	return &ChiMux{
+	return &chiMux{
 		r:           chi.NewMux(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }
 
-func (router *ChiMux) FormatSegment(seg Segment) string {
+func (router *chiMux) FormatSegment(seg Segment) string {
 	switch seg.Type {
 	case Static:
 		return seg.Name
@@ -31,11 +31,11 @@ func (router *ChiMux) FormatSegment(seg Segment) string {
 	}
 }
 
-func (router *ChiMux) Use(middlewares ...MiddlewareFunc) {
+func (router *chiMux) Use(middlewares ...MiddlewareFunc) {
 	router.middlewares = append(router.middlewares, middlewares...)
 }
 
-func (router *ChiMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
+func (router *chiMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
 	router.r.MethodFunc(method, pattern, func(w http.ResponseWriter, r *http.Request) {
 		ctx := MustGetContextFromRequest(r)
@@ -43,7 +43,7 @@ func (router *ChiMux) Handle(method, pattern string, h HandlerFunc, middleware .
 	})
 }
 
-func (router *ChiMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *chiMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
 	chiCtx := chi.NewRouteContext()
 	found := router.r.Match(chiCtx, r.Method, r.URL.Path)
 	if !found {

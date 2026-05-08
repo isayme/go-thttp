@@ -6,19 +6,19 @@ import (
 	"strings"
 )
 
-type HttpServeMux struct {
+type httpServeMux struct {
 	r           *http.ServeMux
 	middlewares []MiddlewareFunc
 }
 
 func newHttpServeMux() Router {
-	return &HttpServeMux{
+	return &httpServeMux{
 		r:           http.NewServeMux(),
 		middlewares: make([]MiddlewareFunc, 0),
 	}
 }
 
-func (router *HttpServeMux) FormatSegment(seg Segment) string {
+func (router *httpServeMux) FormatSegment(seg Segment) string {
 	switch seg.Type {
 	case Static:
 		return seg.Name
@@ -31,11 +31,11 @@ func (router *HttpServeMux) FormatSegment(seg Segment) string {
 	}
 }
 
-func (router *HttpServeMux) Use(middlewares ...MiddlewareFunc) {
+func (router *httpServeMux) Use(middlewares ...MiddlewareFunc) {
 	router.middlewares = append(router.middlewares, middlewares...)
 }
 
-func (router *HttpServeMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
+func (router *httpServeMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
 	router.r.HandleFunc(fmt.Sprintf("%s %s", method, pattern), func(w http.ResponseWriter, r *http.Request) {
 		ctx := MustGetContextFromRequest(r)
@@ -43,7 +43,7 @@ func (router *HttpServeMux) Handle(method, pattern string, h HandlerFunc, middle
 	})
 }
 
-func (router *HttpServeMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
+func (router *httpServeMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
 	handler, pattern := router.r.Handler(r)
 	if pattern == "" {
 		return nil, nil, false
