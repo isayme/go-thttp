@@ -13,7 +13,8 @@ type GinMux struct {
 }
 
 func NewGinMux() Router {
-	ginEngine := gin.Default()
+	ginEngine := gin.New()
+	gin.SetMode(gin.ReleaseMode)
 	ginEngine.HandleMethodNotAllowed = false
 	ginEngine.NoRoute(func(ctx *gin.Context) {})
 	return &GinMux{
