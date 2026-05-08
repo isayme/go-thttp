@@ -2,6 +2,7 @@ package thttp
 
 import "strings"
 
+// SegmentType represents the type of a path segment.
 type SegmentType int
 
 const (
@@ -10,13 +11,15 @@ const (
 	CatchAll                    // wildcard
 )
 
+// Segment represents a parsed path segment.
 type Segment struct {
 	Type SegmentType
 	Raw  string
 	Name string
 }
 
-// ParsePath parse pattern
+// ParsePath parses a URL pattern into segments.
+// Supports: static (/users), param (/users/:id or /users/{id}), catch-all (/users/*path or /users/{path...}).
 func ParsePath(pattern string) []Segment {
 	pattern = strings.TrimSpace(pattern)
 

@@ -5,6 +5,9 @@ import (
 )
 
 type newRouterFunc func() Router
+
+// RouterType specifies the underlying router implementation.
+// Supported types: net/http, julienschmidt/httprouter, gorilla/mux, gin-gonic/gin, go-chi/chi, labstack/echo.
 type RouterType string
 
 const (
@@ -34,18 +37,28 @@ var routerTypeMap = map[RouterType]newRouterFunc{
 	RouterTypeGin:        newGinMux,
 }
 
+// Router is the interface that wraps the routing capabilities.
+// Each router implementation (gin, echo, chi, etc.) must implement this interface.
 type Router interface {
+	// Use registers middlewares for the router.
 	Use(middleware ...MiddlewareFunc)
 
+	// Handle registers a handler for the given method and pattern.
 	Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc)
 
+	// Match finds a handler for the given request.
+	// Returns the handler, path parameter function, and whether a match was found.
 	Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool)
 
+	// FormatSegment converts a thttp Segment to the router's native pattern syntax.
 	FormatSegment(seg Segment) string
 }
 
+// PathParamsFunc is a function that returns path parameters for a request.
 type PathParamsFunc func(ctx Context) PathParams
 
+// PathParams is an interface for accessing path parameter values.
 type PathParams interface {
+	// Get returns the path parameter value by name.
 	Get(name string) string
 }

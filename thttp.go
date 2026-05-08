@@ -36,6 +36,9 @@ type App struct {
 	logger *slog.Logger
 }
 
+// New creates a new thttp application.
+// Options can be passed to customize the app behavior.
+// Default router is net/http, can be changed via THTTP_ROUTER_TYPE env or WithRouterType option.
 func New(options ...OptionFunc) *App {
 	app := &App{
 		middlewares: make([]MiddlewareFunc, 0),
@@ -65,6 +68,7 @@ func New(options ...OptionFunc) *App {
 	return app
 }
 
+// Logger returns the app's logger.
 func (app *App) Logger() *slog.Logger {
 	return app.logger
 }
@@ -91,6 +95,8 @@ func (app *App) formatPattern(pattern string) (string, string) {
 	return "/" + strings.Join(parts, "/"), catchAllKey
 }
 
+// Handle registers a handler for the given method and pattern.
+// Pattern supports: static (/users), param (/users/:id), catch-all (/users/*path).
 func (app *App) Handle(method, pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
 	pattern, catchAllKey := app.formatPattern(app.prefix + pattern)
 	// slog.Info("handle", "method", method, "pattern", pattern)
@@ -108,44 +114,55 @@ func (app *App) Handle(method, pattern string, handler HandlerFunc, middleware .
 	app.router.Handle(method, pattern, applyMiddleware(app.getHandler(handler), middleware...))
 }
 
+// Get registers a GET handler for the given pattern.
 func (app *App) Get(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
 	app.Handle(http.MethodGet, pattern, handler, middleware...)
 }
 
+// Post registers a POST handler for the given pattern.
 func (app *App) Post(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
 	app.Handle(http.MethodPost, pattern, handler, middleware...)
 }
 
+// Put registers a PUT handler for the given pattern.
 func (app *App) Put(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
 	app.Handle(http.MethodPut, pattern, handler, middleware...)
 }
 
+// Patch registers a PATCH handler for the given pattern.
 func (app *App) Patch(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
 	app.Handle(http.MethodPatch, pattern, handler, middleware...)
 }
 
+// Delete registers a DELETE handler for the given pattern.
 func (app *App) Delete(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
 	app.Handle(http.MethodDelete, pattern, handler, middleware...)
 }
 
+// Head registers a HEAD handler for the given pattern.
 func (app *App) Head(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
 	app.Handle(http.MethodHead, pattern, handler, middleware...)
 }
 
+// Options registers an OPTIONS handler for the given pattern.
 func (app *App) Options(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
 	app.Handle(http.MethodOptions, pattern, handler, middleware...)
 }
 
+// Any registers a handler for all HTTP methods for the given pattern.
 func (app *App) Any(pattern string, handler HandlerFunc, middleware ...MiddlewareFunc) {
 	for _, method := range allowedHttpMethods {
 		app.Handle(method, pattern, handler, middleware...)
 	}
 }
 
+// Use registers global middlewares that apply to all routes.
 func (app *App) Use(middleware ...MiddlewareFunc) {
 	app.middlewares = append(app.middlewares, middleware...)
 }
 
+// Static serves static files from the given root directory.
+// Pattern should end with *path to capture the file path.
 func (app *App) Static(pattern string, root string) {
 	app.Get(pattern+"*path", func(ctx Context) error {
 		path := ctx.PathParam("path")
@@ -155,6 +172,7 @@ func (app *App) Static(pattern string, root string) {
 	})
 }
 
+// Group creates a route group with a common prefix and optional middlewares.
 func (app *App) Group(prefix string, middleware ...MiddlewareFunc) *Group {
 	g := &Group{
 		app:         app,
@@ -193,6 +211,7 @@ func (app *App) defaultErrorHandler(ctx Context, err error) error {
 	return ctx.String(http.StatusInternalServerError, err.Error())
 }
 
+// Start starts the HTTP server and listens on the given address.
 func (app *App) Start(address string) error {
 	return http.ListenAndServe(address, app)
 }
@@ -218,7 +237,7 @@ func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// WrapHandler wraps `http.Handler` into `echo.HandlerFunc`.
+// WrapHandler wraps an http.Handler into a thttp HandlerFunc.
 func WrapHandler(h http.Handler) HandlerFunc {
 	return func(c Context) error {
 		h.ServeHTTP(c.Response(), c.Request())
@@ -226,6 +245,7 @@ func WrapHandler(h http.Handler) HandlerFunc {
 	}
 }
 
+// WrapHandlerFunc wraps an http.HandlerFunc into a thttp HandlerFunc.
 func WrapHandlerFunc(h http.HandlerFunc) HandlerFunc {
 	return func(c Context) error {
 		h(c.Response(), c.Request())
@@ -233,6 +253,7 @@ func WrapHandlerFunc(h http.HandlerFunc) HandlerFunc {
 	}
 }
 
+// WrapMiddleware wraps a standard library middleware into a thttp MiddlewareFunc.
 func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 	return func(next HandlerFunc) HandlerFunc {
 		return func(c Context) (err error) {
@@ -246,7 +267,11 @@ func WrapMiddleware(m func(http.Handler) http.Handler) MiddlewareFunc {
 	}
 }
 
+// HandlerFunc is the function signature for HTTP request handlers.
 type HandlerFunc func(ctx Context) error
+
+// ErrorHandlerFunc is the function signature for error handlers.
 type ErrorHandlerFunc func(ctx Context, err error) error
 
+// Skipper is a function that determines whether to skip the middleware.
 type Skipper func(ctx Context) bool

@@ -19,42 +19,74 @@ const (
 	defaultMemory = 32 << 20 // 32 MB
 )
 
+// Context represents the HTTP request context.
+// It provides methods to access request data and write responses.
 type Context interface {
+	// Context returns the underlying context.Context.
 	Context() context.Context
 
+	// Request returns the current http.Request.
 	Request() *http.Request
+	// SetRequest sets the http.Request.
 	SetRequest(r *http.Request)
 
+	// Response returns the http.ResponseWriter.
 	Response() http.ResponseWriter
+	// SetResponse sets the http.ResponseWriter.
 	SetResponse(r http.ResponseWriter)
 
+	// Get retrieves a value from the context storage.
 	Get(key interface{}) interface{}
+	// Set stores a value in the context storage.
 	Set(key, value interface{})
 
+	// Method returns the HTTP method (GET, POST, etc.).
 	Method() string
+	// SetPathParam sets the path parameters.
 	SetPathParam(fn PathParams)
+	// PathParam returns the path parameter value by name.
 	PathParam(name string) string
+	// QueryParam returns the query parameter value by name.
 	QueryParam(name string) string
+	// QueryParams returns all query parameters as url.Values.
 	QueryParams() url.Values
+	// QueryString returns the raw query string.
 	QueryString() string
+	// FormParam returns the form parameter value by name.
 	FormParam(name string) string
+	// FormFile returns the uploaded file from the form.
 	FormFile(name string) (*multipart.FileHeader, error)
+	// MultipartForm returns the multipart form data.
 	MultipartForm() (*multipart.Form, error)
+	// Cookie returns the cookie by name.
 	Cookie(name string) (*http.Cookie, error)
+	// Cookies returns all cookies.
 	Cookies() []*http.Cookie
+	// SetCookie adds a cookie to the response.
 	SetCookie(cookie *http.Cookie)
+	// Header returns the header value by key.
 	Header(key string) string
+	// SetHeader sets a response header.
 	SetHeader(key string, value string)
+	// AddHeader adds a response header (allows multiple values).
 	AddHeader(key string, value string)
+	// DelHeader removes a response header.
 	DelHeader(key string)
 
+	// Blob writes binary data with the given content type.
 	Blob(code int, contentType string, b []byte) error
+	// JSON writes JSON data with the given status code.
 	JSON(code int, i interface{}) error
+	// String writes a plain text response.
 	String(code int, s string) error
+	// Stream streams data from an io.Reader.
 	Stream(code int, contentType string, r io.Reader) error
+	// Redirect redirects to the given URL with the given status code.
 	Redirect(code int, url string) error
 
+	// Logger returns the logger for this context.
 	Logger() *slog.Logger
+	// Reset resets the context for a new request.
 	Reset(r *http.Request, w http.ResponseWriter, logger *slog.Logger)
 }
 
