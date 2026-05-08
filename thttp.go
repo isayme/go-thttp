@@ -218,6 +218,8 @@ func (app *App) Start(address string) error {
 
 func (app *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := app.pool.Get().(Context)
+	defer app.pool.Put(ctx)
+
 	ctx.Reset(r, w, app.logger)
 	r = r.WithContext(context.WithValue(r.Context(), ContextKey, ctx))
 	ctx.SetRequest(r)

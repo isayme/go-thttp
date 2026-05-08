@@ -91,8 +91,6 @@ type Context interface {
 }
 
 type thttpContext struct {
-	parentCtx context.Context
-
 	r *http.Request
 	w http.ResponseWriter
 
@@ -158,6 +156,9 @@ func (ctx *thttpContext) SetPathParam(fn PathParams) {
 }
 
 func (ctx *thttpContext) PathParam(name string) string {
+	if ctx.params == nil {
+		return ""
+	}
 	return ctx.params.Get(name)
 }
 
