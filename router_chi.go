@@ -6,6 +6,10 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+func init() {
+	RegisterRouter(RouterTypeChi, newChiMux)
+}
+
 type chiMux struct {
 	r           *chi.Mux
 	middlewares []MiddlewareFunc

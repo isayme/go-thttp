@@ -7,6 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func init() {
+	RegisterRouter(RouterTypeGin, newGinMux)
+}
+
 type ginMux struct {
 	r           *gin.Engine
 	middlewares []MiddlewareFunc

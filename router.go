@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-type newRouterFunc func() Router
+type NewRouterFunc func() Router
 
 // RouterType specifies the underlying router implementation.
 // Supported types: net/http, julienschmidt/httprouter, gorilla/mux, gin-gonic/gin, go-chi/chi, labstack/echo.
@@ -19,23 +19,8 @@ const (
 	RouterTypeEcho       RouterType = "labstack/echo"
 )
 
-var allRouterTypes = []RouterType{
-	RouterTypeStd,
-	RouterTypeHttprouter,
-	RouterTypeGorillaMux,
-	RouterTypeGin,
-	RouterTypeChi,
-	RouterTypeEcho,
-}
-
-var routerTypeMap = map[RouterType]newRouterFunc{
-	RouterTypeStd:        newHttpServeMux,
-	RouterTypeHttprouter: newHttprouterMux,
-	RouterTypeGorillaMux: newGorillaMux,
-	RouterTypeChi:        newChiMux,
-	RouterTypeEcho:       newEchoMux,
-	RouterTypeGin:        newGinMux,
-}
+var allRouterTypes = []RouterType{}
+var routerTypeMap = map[RouterType]NewRouterFunc{}
 
 // Router is the interface that wraps the routing capabilities.
 // Each router implementation (gin, echo, chi, etc.) must implement this interface.
@@ -61,4 +46,9 @@ type PathParamsFunc func(ctx Context) PathParams
 type PathParams interface {
 	// Get returns the path parameter value by name.
 	Get(name string) string
+}
+
+func RegisterRouter(routerType RouterType, newRouter NewRouterFunc) {
+	allRouterTypes = append(allRouterTypes, routerType)
+	routerTypeMap[routerType] = newRouter
 }

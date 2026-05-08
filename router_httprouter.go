@@ -7,6 +7,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+func init() {
+	RegisterRouter(RouterTypeHttprouter, newHttprouterMux)
+}
+
 type httprouterMux struct {
 	r           *httprouter.Router
 	middlewares []MiddlewareFunc

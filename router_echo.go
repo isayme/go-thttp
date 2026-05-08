@@ -6,6 +6,10 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
+func init() {
+	RegisterRouter(RouterTypeEcho, newEchoMux)
+}
+
 type echoMux struct {
 	r           *echo.Echo
 	middlewares []MiddlewareFunc

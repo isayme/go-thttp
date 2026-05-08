@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+func init() {
+	RegisterRouter(RouterTypeStd, newHttpServeMux)
+}
+
 type httpServeMux struct {
 	r           *http.ServeMux
 	middlewares []MiddlewareFunc

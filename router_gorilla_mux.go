@@ -6,6 +6,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func init() {
+	RegisterRouter(RouterTypeGorillaMux, newGorillaMux)
+}
+
 type gorillaMux struct {
 	r           *mux.Router
 	middlewares []MiddlewareFunc
