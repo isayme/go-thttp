@@ -11,7 +11,7 @@ type GorillaMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func NewGorillaMux() Router {
+func newGorillaMux() Router {
 	return &GorillaMux{
 		r:           mux.NewRouter(),
 		middlewares: make([]MiddlewareFunc, 0),
@@ -56,20 +56,20 @@ func (router *GorillaMux) Match(w http.ResponseWriter, r *http.Request) (Handler
 	ctx := MustGetContextFromRequest(r)
 	ctx.Set(PathRawParamsCtxKey, rm.Vars)
 
-	return MustGetHandlerFromCtx(ctx), NewGorillaMuxPathParams, true
+	return MustGetHandlerFromCtx(ctx), newGorillaMuxPathParams, true
 }
 
-type GorillaMuxPathParams struct {
+type gorillaMuxPathParams struct {
 	ctx Context
 }
 
-func NewGorillaMuxPathParams(ctx Context) PathParams {
-	return &GorillaMuxPathParams{
+func newGorillaMuxPathParams(ctx Context) PathParams {
+	return &gorillaMuxPathParams{
 		ctx: ctx,
 	}
 }
 
-func (pp *GorillaMuxPathParams) Get(name string) string {
+func (pp *gorillaMuxPathParams) Get(name string) string {
 	value := pp.ctx.Get(PathRawParamsCtxKey)
 	if value == nil {
 		return ""

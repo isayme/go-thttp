@@ -20,18 +20,18 @@ var allRouterTypes = []RouterType{
 	RouterTypeStd,
 	RouterTypeHttprouter,
 	RouterTypeGorillaMux,
-	// RouterTypeGin,
+	RouterTypeGin,
 	RouterTypeChi,
 	RouterTypeEcho,
 }
 
 var routerTypeMap = map[RouterType]newRouterFunc{
-	RouterTypeStd:        NewHttpServeMux,
-	RouterTypeHttprouter: NewHttprouterMux,
-	RouterTypeGorillaMux: NewGorillaMux,
-	RouterTypeChi:        NewChiMux,
-	RouterTypeEcho:       NewEchoMux,
-	RouterTypeGin:        NewGinMux,
+	RouterTypeStd:        newHttpServeMux,
+	RouterTypeHttprouter: newHttprouterMux,
+	RouterTypeGorillaMux: newGorillaMux,
+	RouterTypeChi:        newChiMux,
+	RouterTypeEcho:       newEchoMux,
+	RouterTypeGin:        newGinMux,
 }
 
 type Router interface {
@@ -42,18 +42,6 @@ type Router interface {
 	Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool)
 
 	FormatSegment(seg Segment) string
-}
-
-type wrapHandler struct {
-	h HandlerFunc
-}
-
-func newWrapHandler(h HandlerFunc) *wrapHandler {
-	return &wrapHandler{h: h}
-}
-
-func (wh *wrapHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// do nothing
 }
 
 type PathParamsFunc func(ctx Context) PathParams

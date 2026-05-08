@@ -11,7 +11,7 @@ type EchoMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func NewEchoMux() Router {
+func newEchoMux() Router {
 	routerConfig := echo.RouterConfig{}
 
 	return &EchoMux{
@@ -63,20 +63,20 @@ func (router *EchoMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFun
 	ctx := MustGetContextFromRequest(r)
 	ctx.Set(PathRawParamsCtxKey, echoCtx)
 
-	return MustGetHandlerFromCtx(ctx), NewEchoMuxPathParams, true
+	return MustGetHandlerFromCtx(ctx), newEchoMuxPathParams, true
 }
 
-type EchoMuxPathParams struct {
+type echoMuxPathParams struct {
 	ctx Context
 }
 
-func NewEchoMuxPathParams(ctx Context) PathParams {
-	return &EchoMuxPathParams{
+func newEchoMuxPathParams(ctx Context) PathParams {
+	return &echoMuxPathParams{
 		ctx: ctx,
 	}
 }
 
-func (pp *EchoMuxPathParams) Get(name string) string {
+func (pp *echoMuxPathParams) Get(name string) string {
 	value := pp.ctx.Get(PathRawParamsCtxKey)
 	if value == nil {
 		return ""

@@ -15,176 +15,179 @@ import (
 
 func TestHttpMethod(t *testing.T) {
 	require := require.New(t)
+	for _, routerType := range allRouterTypes {
 
-	t.Run("Any", func(t *testing.T) {
-		for _, method := range allowedHttpMethods {
-			t.Run(method, func(t *testing.T) {
-				req := httptest.NewRequest(method, "/method", nil)
+		t.Run(string(routerType)+": Any", func(t *testing.T) {
+			for _, method := range allowedHttpMethods {
+				t.Run(method, func(t *testing.T) {
+					req := httptest.NewRequest(method, "/method", nil)
 
-				w := httptest.NewRecorder()
+					w := httptest.NewRecorder()
 
-				app := New()
-				app.Any("/method", func(ctx Context) error {
-					return ctx.String(http.StatusOK, ctx.Method())
+					app := New(WithRouterType(routerType))
+					app.Any("/method", func(ctx Context) error {
+						return ctx.String(http.StatusOK, ctx.Method())
+					})
+
+					app.ServeHTTP(w, req)
+
+					require.Equal(http.StatusOK, w.Code)
+					require.Equal(method, w.Body.String())
 				})
+			}
+		})
 
-				app.ServeHTTP(w, req)
+		t.Run(string(routerType)+": Get", func(t *testing.T) {
+			method := http.MethodGet
 
-				require.Equal(http.StatusOK, w.Code)
-				require.Equal(method, w.Body.String())
+			req := httptest.NewRequest(method, "/method", nil)
+
+			w := httptest.NewRecorder()
+
+			app := New(WithRouterType(routerType))
+			app.Get("/method", func(ctx Context) error {
+				return ctx.String(http.StatusOK, ctx.Method())
 			})
-		}
-	})
 
-	t.Run("Get", func(t *testing.T) {
-		method := http.MethodGet
+			app.ServeHTTP(w, req)
 
-		req := httptest.NewRequest(method, "/method", nil)
-
-		w := httptest.NewRecorder()
-
-		app := New()
-		app.Get("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
+			require.Equal(http.StatusOK, w.Code)
+			require.Equal(method, w.Body.String())
 		})
 
-		app.ServeHTTP(w, req)
+		t.Run(string(routerType)+": Post", func(t *testing.T) {
+			method := http.MethodPost
 
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(method, w.Body.String())
-	})
+			req := httptest.NewRequest(method, "/method", nil)
 
-	t.Run("Post", func(t *testing.T) {
-		method := http.MethodPost
+			w := httptest.NewRecorder()
 
-		req := httptest.NewRequest(method, "/method", nil)
+			app := New(WithRouterType(routerType))
+			app.Post("/method", func(ctx Context) error {
+				return ctx.String(http.StatusOK, ctx.Method())
+			})
 
-		w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
 
-		app := New()
-		app.Post("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
+			require.Equal(http.StatusOK, w.Code)
+			require.Equal(method, w.Body.String())
 		})
 
-		app.ServeHTTP(w, req)
+		t.Run(string(routerType)+": Put", func(t *testing.T) {
+			method := http.MethodPut
 
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(method, w.Body.String())
-	})
+			req := httptest.NewRequest(method, "/method", nil)
 
-	t.Run("Put", func(t *testing.T) {
-		method := http.MethodPut
+			w := httptest.NewRecorder()
 
-		req := httptest.NewRequest(method, "/method", nil)
+			app := New(WithRouterType(routerType))
+			app.Put("/method", func(ctx Context) error {
+				return ctx.String(http.StatusOK, ctx.Method())
+			})
 
-		w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
 
-		app := New()
-		app.Put("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
+			require.Equal(http.StatusOK, w.Code)
+			require.Equal(method, w.Body.String())
 		})
 
-		app.ServeHTTP(w, req)
+		t.Run(string(routerType)+": Patch", func(t *testing.T) {
+			method := http.MethodPatch
 
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(method, w.Body.String())
-	})
+			req := httptest.NewRequest(method, "/method", nil)
 
-	t.Run("Patch", func(t *testing.T) {
-		method := http.MethodPatch
+			w := httptest.NewRecorder()
 
-		req := httptest.NewRequest(method, "/method", nil)
+			app := New(WithRouterType(routerType))
+			app.Patch("/method", func(ctx Context) error {
+				return ctx.String(http.StatusOK, ctx.Method())
+			})
 
-		w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
 
-		app := New()
-		app.Patch("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
+			require.Equal(http.StatusOK, w.Code)
+			require.Equal(method, w.Body.String())
 		})
 
-		app.ServeHTTP(w, req)
+		t.Run(string(routerType)+": Delete", func(t *testing.T) {
+			method := http.MethodDelete
 
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(method, w.Body.String())
-	})
+			req := httptest.NewRequest(method, "/method", nil)
 
-	t.Run("Delete", func(t *testing.T) {
-		method := http.MethodDelete
+			w := httptest.NewRecorder()
 
-		req := httptest.NewRequest(method, "/method", nil)
+			app := New(WithRouterType(routerType))
+			app.Delete("/method", func(ctx Context) error {
+				return ctx.String(http.StatusOK, ctx.Method())
+			})
 
-		w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
 
-		app := New()
-		app.Delete("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
+			require.Equal(http.StatusOK, w.Code)
+			require.Equal(method, w.Body.String())
 		})
 
-		app.ServeHTTP(w, req)
+		t.Run(string(routerType)+": Options", func(t *testing.T) {
+			method := http.MethodOptions
 
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(method, w.Body.String())
-	})
+			req := httptest.NewRequest(method, "/method", nil)
 
-	t.Run("Options", func(t *testing.T) {
-		method := http.MethodOptions
+			w := httptest.NewRecorder()
 
-		req := httptest.NewRequest(method, "/method", nil)
+			app := New(WithRouterType(routerType))
+			app.Options("/method", func(ctx Context) error {
+				return ctx.String(http.StatusOK, ctx.Method())
+			})
 
-		w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
 
-		app := New()
-		app.Options("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
+			require.Equal(http.StatusOK, w.Code)
+			require.Equal(method, w.Body.String())
 		})
 
-		app.ServeHTTP(w, req)
+		t.Run(string(routerType)+": Head", func(t *testing.T) {
+			method := http.MethodHead
 
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(method, w.Body.String())
-	})
+			req := httptest.NewRequest(method, "/method", nil)
 
-	t.Run("Head", func(t *testing.T) {
-		method := http.MethodHead
+			w := httptest.NewRecorder()
 
-		req := httptest.NewRequest(method, "/method", nil)
+			app := New(WithRouterType(routerType))
+			app.Head("/method", func(ctx Context) error {
+				return ctx.String(http.StatusOK, ctx.Method())
+			})
 
-		w := httptest.NewRecorder()
+			app.ServeHTTP(w, req)
 
-		app := New()
-		app.Head("/method", func(ctx Context) error {
-			return ctx.String(http.StatusOK, ctx.Method())
+			require.Equal(http.StatusOK, w.Code)
+			require.Equal(method, w.Body.String())
 		})
-
-		app.ServeHTTP(w, req)
-
-		require.Equal(http.StatusOK, w.Code)
-		require.Equal(method, w.Body.String())
-	})
+	}
 }
 
 func TestStatusCode(t *testing.T) {
 	require := require.New(t)
 
-	for _, code := range []int{200, 201, 301, 302, 400, 401, 403, 404, 500, 501, 502} {
-		t.Run("200", func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/method", nil)
+	for _, routerType := range allRouterTypes {
+		for _, code := range []int{200, 201, 301, 302, 400, 401, 403, 404, 500, 501, 502} {
+			t.Run(string(routerType)+": 200", func(t *testing.T) {
+				req := httptest.NewRequest(http.MethodGet, "/method", nil)
 
-			w := httptest.NewRecorder()
+				w := httptest.NewRecorder()
 
-			app := New()
+				app := New(WithRouterType(routerType))
 
-			app.Get("/method", func(ctx Context) error {
-				return ctx.String(code, fmt.Sprintf("%d", code))
+				app.Get("/method", func(ctx Context) error {
+					return ctx.String(code, fmt.Sprintf("%d", code))
+				})
+
+				app.ServeHTTP(w, req)
+
+				require.Equal(code, w.Code)
+				require.Equal(fmt.Sprintf("%d", code), w.Body.String())
 			})
-
-			app.ServeHTTP(w, req)
-
-			require.Equal(code, w.Code)
-			require.Equal(fmt.Sprintf("%d", code), w.Body.String())
-		})
+		}
 	}
-
 }
 
 func TestNotFound(t *testing.T) {
@@ -222,7 +225,13 @@ func TestNotFound(t *testing.T) {
 			require.Equal(http.StatusNotImplemented, w.Code)
 			require.Equal(msg, w.Body.String())
 		})
+	}
+}
 
+func TestErrorHandler(t *testing.T) {
+	require := require.New(t)
+
+	for _, routerType := range allRouterTypes {
 		t.Run(string(routerType)+": error handler", func(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/method", nil)
 

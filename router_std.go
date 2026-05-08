@@ -11,7 +11,7 @@ type HttpServeMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func NewHttpServeMux() Router {
+func newHttpServeMux() Router {
 	return &HttpServeMux{
 		r:           http.NewServeMux(),
 		middlewares: make([]MiddlewareFunc, 0),
@@ -37,7 +37,10 @@ func (router *HttpServeMux) Use(middlewares ...MiddlewareFunc) {
 
 func (router *HttpServeMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
-	router.r.Handle(fmt.Sprintf("%s %s", method, pattern), newWrapHandler(handler))
+	router.r.HandleFunc(fmt.Sprintf("%s %s", method, pattern), func(w http.ResponseWriter, r *http.Request) {
+		ctx := MustGetContextFromRequest(r)
+		SetHandlerInCtx(ctx, handler)
+	})
 }
 
 func (router *HttpServeMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
@@ -46,25 +49,23 @@ func (router *HttpServeMux) Match(w http.ResponseWriter, r *http.Request) (Handl
 		return nil, nil, false
 	}
 
-	wh, ok := handler.(*wrapHandler)
-	if !ok {
-		panic("handler is not wrapHandler:" + pattern)
-	}
-
+	handler.ServeHTTP(w, r)
 	populatePathValues(r, pattern)
 
-	return wh.h, NewHttpServeMuxPathParams, true
+	ctx := MustGetContextFromRequest(r)
+
+	return MustGetHandlerFromCtx(ctx), newHttpServeMuxPathParams, true
 }
 
-type HttpServeMuxPathParams struct {
+type httpServeMuxPathParams struct {
 	ctx Context
 }
 
-func NewHttpServeMuxPathParams(ctx Context) PathParams {
-	return &HttpServeMuxPathParams{ctx: ctx}
+func newHttpServeMuxPathParams(ctx Context) PathParams {
+	return &httpServeMuxPathParams{ctx: ctx}
 }
 
-func (pp *HttpServeMuxPathParams) Get(name string) string {
+func (pp *httpServeMuxPathParams) Get(name string) string {
 	return pp.ctx.Request().PathValue(name)
 }
 

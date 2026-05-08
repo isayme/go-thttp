@@ -12,7 +12,7 @@ type HttprouterMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func NewHttprouterMux() Router {
+func newHttprouterMux() Router {
 	return &HttprouterMux{
 		r:           httprouter.New(),
 		middlewares: make([]MiddlewareFunc, 0),
@@ -60,7 +60,7 @@ func (router *HttprouterMux) Match(w http.ResponseWriter, r *http.Request) (Hand
 	handler(w, r, params)
 	ctx := MustGetContextFromRequest(r)
 	if len(params) > 0 {
-		ctx.Set(httprouter.ParamsKey, params)
+		ctx.Set(PathRawParamsCtxKey, params)
 	}
 	return MustGetHandlerFromCtx(ctx), NewHttprouterMuxPathParams, true
 }
@@ -76,7 +76,7 @@ func NewHttprouterMuxPathParams(ctx Context) PathParams {
 }
 
 func (pp *HttprouterMuxPathParams) Get(name string) string {
-	value := pp.ctx.Get(httprouter.ParamsKey)
+	value := pp.ctx.Get(PathRawParamsCtxKey)
 	if value == nil {
 		return ""
 	}

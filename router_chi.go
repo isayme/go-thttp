@@ -11,7 +11,7 @@ type ChiMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func NewChiMux() Router {
+func newChiMux() Router {
 	return &ChiMux{
 		r:           chi.NewMux(),
 		middlewares: make([]MiddlewareFunc, 0),
@@ -37,7 +37,6 @@ func (router *ChiMux) Use(middlewares ...MiddlewareFunc) {
 
 func (router *ChiMux) Handle(method, pattern string, h HandlerFunc, middleware ...MiddlewareFunc) {
 	handler := applyMiddleware(h, middleware...)
-	// slog.Info("chi", "method", method, "pattern", pattern)
 	router.r.MethodFunc(method, pattern, func(w http.ResponseWriter, r *http.Request) {
 		ctx := MustGetContextFromRequest(r)
 		SetHandlerInCtx(ctx, handler)
@@ -56,20 +55,20 @@ func (router *ChiMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc
 	ctx := MustGetContextFromRequest(r)
 	ctx.Set(PathRawParamsCtxKey, chiCtx)
 
-	return MustGetHandlerFromCtx(ctx), NewChiMuxPathParams, true
+	return MustGetHandlerFromCtx(ctx), newChiMuxPathParams, true
 }
 
-type ChiMuxPathParams struct {
+type chiMuxPathParams struct {
 	ctx Context
 }
 
-func NewChiMuxPathParams(ctx Context) PathParams {
-	return &ChiMuxPathParams{
+func newChiMuxPathParams(ctx Context) PathParams {
+	return &chiMuxPathParams{
 		ctx: ctx,
 	}
 }
 
-func (pp *ChiMuxPathParams) Get(name string) string {
+func (pp *chiMuxPathParams) Get(name string) string {
 	chiCtx, ok := pp.ctx.Get(PathRawParamsCtxKey).(*chi.Context)
 	if ok {
 		if v, ok := pp.ctx.Get(CatchAllPathParamCtxKey).(string); ok && v == name {

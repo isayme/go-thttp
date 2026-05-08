@@ -12,11 +12,13 @@ type GinMux struct {
 	middlewares []MiddlewareFunc
 }
 
-func NewGinMux() Router {
+func newGinMux() Router {
 	ginEngine := gin.New()
 	gin.SetMode(gin.ReleaseMode)
-	ginEngine.HandleMethodNotAllowed = false
-	ginEngine.NoRoute(func(ctx *gin.Context) {})
+	// ginEngine.HandleMethodNotAllowed = false
+	// ginEngine.NoRoute(func(ctx *gin.Context) {
+	// 	// ctx.Writer = newFakeResponseWriter()
+	// })
 	return &GinMux{
 		r:           ginEngine,
 		middlewares: make([]MiddlewareFunc, 0),
@@ -57,26 +59,26 @@ func (router *GinMux) Handle(method, pattern string, h HandlerFunc, middleware .
 }
 
 func (router *GinMux) Match(w http.ResponseWriter, r *http.Request) (HandlerFunc, PathParamsFunc, bool) {
-	router.r.ServeHTTP(w, r)
+	router.r.ServeHTTP(newFakeResponseWriter(), r)
 
 	ctx := MustGetContextFromRequest(r)
 	if _, ok := ctx.Get(HandlerFoundKey).(bool); !ok {
 		return nil, nil, false
 	}
-	return MustGetHandlerFromCtx(ctx), NewGinMuxPathParams, true
+	return MustGetHandlerFromCtx(ctx), newGinMuxPathParams, true
 }
 
-type GinMuxPathParams struct {
+type ginMuxPathParams struct {
 	ctx Context
 }
 
-func NewGinMuxPathParams(ctx Context) PathParams {
-	return &GinMuxPathParams{
+func newGinMuxPathParams(ctx Context) PathParams {
+	return &ginMuxPathParams{
 		ctx: ctx,
 	}
 }
 
-func (pp *GinMuxPathParams) Get(name string) string {
+func (pp *ginMuxPathParams) Get(name string) string {
 	value := pp.ctx.Get(PathRawParamsCtxKey)
 	if value == nil {
 		return ""
@@ -91,4 +93,28 @@ func (pp *GinMuxPathParams) Get(name string) string {
 	}
 
 	return ""
+}
+
+// use fake response to avoid gin framework auto write response
+type fakeResponseWriter struct {
+	header http.Header
+}
+
+var _ http.ResponseWriter = (*fakeResponseWriter)(nil)
+
+func (w *fakeResponseWriter) WriteHeader(code int) {
+}
+
+func (w *fakeResponseWriter) Header() http.Header {
+	return w.header
+}
+
+func (w *fakeResponseWriter) Write(data []byte) (n int, err error) {
+	return len(data), nil
+}
+
+func newFakeResponseWriter() http.ResponseWriter {
+	return &fakeResponseWriter{
+		header: make(http.Header),
+	}
 }
