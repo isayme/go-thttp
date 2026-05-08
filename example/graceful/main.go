@@ -13,6 +13,9 @@ import (
 	"github.com/isayme/go-thttp"
 )
 
+/**
+ * see https://oneuptime.com/blog/post/2026-01-23-go-graceful-shutdown/view
+ */
 func main() {
 	app := thttp.New()
 

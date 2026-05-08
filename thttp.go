@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -146,7 +147,12 @@ func (app *App) Use(middleware ...MiddlewareFunc) {
 }
 
 func (app *App) Static(pattern string, root string) {
-
+	app.Get(pattern+"*path", func(ctx Context) error {
+		path := ctx.PathParam("path")
+		path = filepath.Join(root, filepath.FromSlash(path))
+		http.ServeFile(ctx.Response(), ctx.Request(), path)
+		return nil
+	})
 }
 
 func (app *App) Group(prefix string, middleware ...MiddlewareFunc) *Group {
