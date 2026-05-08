@@ -1,3 +1,6 @@
+[![Go Doc](https://godoc.org/github.com/isayme/go-thttp?status.svg)](https://pkg.go.dev/github.com/isayme/go-thttp)
+
+
 # Qucik Start
 ## Install
 `go get github.com/isayme/go-thttp@latest`
