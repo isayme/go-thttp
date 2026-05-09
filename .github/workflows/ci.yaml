@@ -24,4 +24,10 @@ jobs:
           go-version: '${{ matrix.go-version }}'
 
       - name: Run tests
-        run: make test
+        run: make coveralls
+
+      - name: Upload coverage
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: coverage.out
