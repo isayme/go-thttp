@@ -1,5 +1,7 @@
-[![Go Doc](https://godoc.org/github.com/isayme/go-thttp?status.svg)](https://pkg.go.dev/github.com/isayme/go-thttp)
+thttp, a web framework for Go.
 
+[![Go Doc](https://godoc.org/github.com/isayme/go-thttp?status.svg)](https://pkg.go.dev/github.com/isayme/go-thttp)
+[![Coverage Status](https://coveralls.io/repos/github/isayme/go-thttp/badge.svg?branch=master)](https://coveralls.io/github/isayme/go-thttp?branch=master)
 
 # Qucik Start
 ## Install
